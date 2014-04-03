@@ -1,0 +1,21 @@
+\begin{thebibliography}{1}
+
+\bibitem{commun1}
+A.~Mehrabian.
+\newblock Communication without words.
+\newblock {\em Psychology today}, 2:53--56, 1968.
+
+\bibitem{1530069}
+Caifeng Shan, Shaogang Gong, and Peter~W. McOwan.
+\newblock Robust facial expression recognition using local binary patterns.
+\newblock In {\em Image Processing, 2005. ICIP 2005. IEEE International
+  Conference on}, volume~2, pages II--370--3, Sept 2005.
+
+\bibitem{4160945}
+Guoying Zhao and M.~Pietikainen.
+\newblock Dynamic texture recognition using local binary patterns with an
+  application to facial expressions.
+\newblock {\em Pattern Analysis and Machine Intelligence, IEEE Transactions
+  on}, 29(6):915--928, June 2007.
+
+\end{thebibliography}
