@@ -54,11 +54,15 @@ bool MicroDescriptorBuilder<T>::Build(){
 		VideoCapture Video;
 		Video.open(VideoPath);
 		cout << "Extrayendo rayos del video " << VideoPath << endl;
-		RaysUniverse_.push_back(RaysExtractor_.Extract(Video));
+		vector<vector<pair<int,int>>> Rays = RaysExtractor_.Extract(Video);
+		SizeRaysUniverse_ += Rays.size();
+		RaysUniverse_.push_back( std::move(Rays) );
+
 
 		Video.release();
 	}
 
 	cout << RaysUniverse_.size() << endl;
+	cout << SizeRaysUniverse_ << endl;
 }
 
