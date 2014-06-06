@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
 	video.open(argv[1]);
 
 	RaysExtractor<uchar> Extractor;
-	vector<vector<pair<int,int>>> RaysRoi = Extractor.Extract(video);
+	vector<vector<pair<int,int>>> RaysRoi = Extractor.Extract(video,3);
 
 	cout << RaysRoi.size() << endl;
 
