@@ -13,13 +13,12 @@ class MicroDescriptorBuilder
 		ifstream inFile_;
 		ofstream outFile_;
 		RaysExtractor<T> RaysExtractor_;
-		vector<vector<vector<pair<int,int>>>> RaysUniverse_;
 		size_t SizeRaysUniverse_;
 	public:
 		MicroDescriptorBuilder(string&,string&);
 		~MicroDescriptorBuilder();
 		bool isGood();
-		bool Build();
+		bool Build(const int,const int);
 };
 
 template<typename T>
@@ -41,28 +40,46 @@ bool MicroDescriptorBuilder<T>::isGood(){
 }
 
 template<typename T>
-bool MicroDescriptorBuilder<T>::Build(){
+bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int SizeNorm){
 	if(! isGood() ) return (false);
 
 	string VideoPath;
 	string VideoClass;
+	int    VideoId;
 	int    nVideoFrames;
 
+	int count = 0;
 	while(!inFile_.eof()){
-		inFile_ >> VideoPath >> VideoClass >> nVideoFrames;
+
+		if(count > 4) {break;}
+		count++;
+
+		inFile_ >> VideoPath >> VideoId >>VideoClass >> nVideoFrames;
+		outFile_ << 2*SizeNorm << endl;
 
 		VideoCapture Video;
 		Video.open(VideoPath);
 		cout << "Extrayendo rayos del video " << VideoPath << endl;
-		vector<vector<pair<int,int>>> Rays = RaysExtractor_.Extract(Video,3);
-		SizeRaysUniverse_ += Rays.size();
-		RaysUniverse_.push_back( std::move(Rays) );
+		vector<vector<pair<float,float>>> Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize,SizeNorm));
+			
+		int ROI = 1;	
+		for (std::vector<vector<pair<float,float>>>::iterator i = Rays.begin(); i != Rays.end(); ++i)
+		{
+			outFile_ << VideoId << " " << ROI;
 
+			for (std::vector<pair<float,float>>::iterator j = i->begin(); j != i->end(); ++j)
+			{
+				outFile_ << " " << j->first << " " << j->second;
+			}
+
+			outFile_ << endl;
+		}
+
+		SizeRaysUniverse_ += Rays.size();
 
 		Video.release();
 	}
 
-	cout << RaysUniverse_.size() << endl;
 	cout << SizeRaysUniverse_ << endl;
+	return (true);
 }
-

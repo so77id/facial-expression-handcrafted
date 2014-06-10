@@ -1,12 +1,14 @@
+//hasta aca estamos ok
 #include "opencv2/opencv.hpp"
 #include <vector>
 #include <utility>
 #include <limits>
 #include <cmath>
-
+#include "utility.hpp"
 
 using namespace cv;
 using namespace std;
+using namespace utility;
 
 
 template<typename T>
@@ -14,28 +16,32 @@ class RaysExtractor
 {
 	private:
 		T MSE(T, T);
-		T SumMSE(const Mat&, const Mat &);
-		pair<int,int> ComputeFlow(const pair<int,int> &, const Mat &,const Mat &, const int);
+		T SumMSE(const ROI&, const ROI&, const Mat&, const Mat &);
+		pair<float,float> ComputeFlow(const pair<int,int> &, const ROI &,const ROI &, const Mat &, Mat &,const int);
 	public:
-		vector<vector<pair<int,int>>> Extract(VideoCapture &,const int);
+		vector<vector<pair<float,float>>> Extract(VideoCapture &,const int, const int);
+		vector<pair<float,float>> Normalize(const vector<pair<float,float>>,const int);
 };
 
 
 template<typename T>
 T RaysExtractor<T>::MSE(T intensity0, T intensity1){
-	//cout << "intensidad: " << intensity0 - intensity1 << endl;
 	return (pow(intensity0 - intensity1,2));
 }
 
 
 template<typename T>
-T RaysExtractor<T>::SumMSE(const Mat& SupportRegion, const Mat& RoiWS){
+T RaysExtractor<T>::SumMSE(const ROI& SupportRegion, const ROI& RoiWS,const Mat &ISR,const Mat &IWS){
 	T sum = 0;
-	for (size_t i = 0; i < SupportRegion.rows; ++i)
-	{
-		for (size_t j = 0; j < SupportRegion.cols; ++j)
+	for (int iSR = SupportRegion.RowsBegin(), iWS = RoiWS.RowsBegin();
+			 iSR < SupportRegion.RowsEnd() && iWS < RoiWS.RowsEnd(); 
+			 iSR++ , iWS++){
+
+		for (int jSR = SupportRegion.ColsBegin(), jWS = RoiWS.ColsBegin();
+				 jSR < SupportRegion.ColsEnd() && jWS < RoiWS.ColsEnd();
+				 jSR++, jWS++)
 		{
-			sum += MSE(SupportRegion.at<T>(i,j), RoiWS.at<T>(i,j));
+			sum += MSE(ISR.at<T>(iSR,jSR), IWS.at<T>(iWS,jWS));
 		}
 	}
 
@@ -45,29 +51,18 @@ T RaysExtractor<T>::SumMSE(const Mat& SupportRegion, const Mat& RoiWS){
 //SR SupportRegion
 //WS Windows Search
 template<typename T>
-pair<int,int> RaysExtractor<T>::ComputeFlow(const pair<int,int> &point0, const Mat &SR ,const Mat &WS,const int size){
+pair<float,float> RaysExtractor<T>::ComputeFlow(const pair<int,int> &point0, const ROI &SR ,const ROI &WS, const Mat &ISR, Mat &IWS,const int size){
 	
-	vector<pair<T,pair<int,int> > > MSE_vector;	
+	vector<pair<T,pair<int,int>>> MSE_vector;	
 	using MSE_vector_iterator = typename std::vector<pair<T,pair<int,int> > >::iterator;
 	
 
-	for(int i = 0; i < WS.rows; i++){
-		for (int j = 0; j < WS.cols; j++){
-			//cout << "intensity: " << intensity << " roi.at(i,j): " << roi.at<T>(i,j) << endl;
-			int d = (size - 1)/2;
-
-			int x = (j - d) < 0 ? 0 : j - d;
-			int y = (i - d) < 0 ? 0 : i - d;
-			int w = (j + d) > WS.cols - 1 ? (WS.cols - 1 - j) + d : size;
-			int h = (i + d) > WS.rows - 1 ? (WS.rows - 1 - i) + d : size;	
+	for(int i = WS.RowsBegin(); i < WS.RowsEnd(); i++){
+		for (int j = WS.ColsBegin(); j < WS.ColsEnd(); j++){
 			
+			ROI roiWS = CreateRoi(IWS,i,j,size);
 
-			Rect WSrect(x,y,w,h);
-			
-
-			Mat roiWS = WS(WSrect);
-
-			T mse = SumMSE(SR,roiWS);
+			T mse = SumMSE(SR,roiWS,ISR,IWS);
 			MSE_vector.push_back( std::make_pair(mse, make_pair(i,j) ) );
 		}
 	}
@@ -84,90 +79,86 @@ pair<int,int> RaysExtractor<T>::ComputeFlow(const pair<int,int> &point0, const M
 		}
 	}
 
-//	cout << "MSE minimo: " << (int) min << " point0: " << point0.first << "," << point0.second << " point1: " << point1.first << "," << point1.second << endl;	
-
-	return( std::make_pair( abs(point0.first - point1.first), abs(point0.second - point1.second) ) );
+	//cout << (point0.first - point1.first) << endl;
+	return( std::make_pair( float(point0.first - point1.first), float(point0.second - point1.second) ) );
 }
 
 
 template<typename T>
-vector<vector<pair<int,int>>> RaysExtractor<T>::Extract(VideoCapture &video,const int size){
-	vector<vector<pair<int,int>>> RaysRoi;
-
+vector<vector<pair<float,float>>> RaysExtractor<T>::Extract(VideoCapture &video,const int size, const int SizeNorm){
+	
 	if(!video.isOpened()){
 		cout << "Video file error" << endl;
+		vector<vector<pair<float,float>>> RaysRoi(0);
 		return(RaysRoi);
 	}
+	vector<vector<pair<float,float>>> RaysRoi;
+
 
 	Mat frame0;
 	video >> frame0;
 
 	Mat frame1;
 
-	map<pair<int,int>,vector<pair<int,int> > >  RaysMap;
+	map<pair<int,int>,vector<pair<float,float>>>  RaysMap;
 
-	int frameCount = 0;
 	while(video.read(frame1)){
-		frameCount++;
 
-		//cout << "Computando el frame: " << frameCount << endl;
-		//cout << "w x h" << frame0.rows << " x " << frame0.cols << endl;
+		for (int i = 0; i < frame0.rows; ++i){
 
-		int d,x,y,w,h;
+			for (int j = 0; j < frame0.cols; ++j){
 
-		for (int i = 0; i < frame0.rows; ++i)
-		{
-			for (int j = 0; j < frame0.cols; ++j)
-			{	
-//				cout << "Computando el flow del frame: " << frameCount << " En el pixel (i,j): (" << i << "," << j << ")" << endl;  
 				pair<int,int> pixel = make_pair(i,j);
 
+				ROI SupportRegion = CreateRoi(frame0,i,j,size);	
 
-				d = (size - 1)/2;
+  				ROI WindowSearch = CreateRoi(frame1,i,j,(2*size + 1));	
 
-				x = (j - d) < 0 ? 0 : j - d;
-				y = (i - d) < 0 ? 0 : i - d;
-				w = (j + d) > frame0.cols - 1 ? (frame0.cols - 1 - j) + d : size;
-				h = (i + d) > frame0.rows - 1 ? (frame0.rows - 1 - i) + d : size;
-
-				Rect SRroi(x,y,w,h);
-				Mat SupportRegion = frame0(SRroi);	
-
-
-				d = (size);
-				x = (j - d) < 0 ? 0 : j - d;
-				y = (i - d) < 0 ? 0 : i - d;
-				w = (j + d) > frame1.cols - 1 ? (frame1.cols - 1 - j) + d : 2*size+1;
-				h = (i + d) > frame1.rows - 1 ? (frame1.rows - 1 - i) + d : 2*size+1;
-
-				Rect WSroi(x,y,w,h);
-  				Mat WindowSearch = frame1(WSroi);	
-
-//				cout << "x: " << roi.x << " y: " << roi.x << " x + width: " << roi.x + roi.width << " y + height: " << roi.y + roi.height << endl; 
-//				cout << "Computando el Flow de " << i << " , "  << j << endl;
-				RaysMap[pixel].push_back( ComputeFlow( pixel, SupportRegion, WindowSearch , size) );
-//				cout << "DEJE de computar" << endl << endl;
+				RaysMap[pixel].push_back( ComputeFlow( pixel, SupportRegion, WindowSearch,frame0,frame1, size) );
 			}
 		}
 
 		frame1 = frame0;
 	}
 
-//	cout << "coordenada: (i,j) --> rayos (dx1,dy1) , (dx2,dy2) , ... , (dxn,dyn)" << endl;
-	for (std::map<pair<int,int>,vector<pair<int,int> > >::iterator i = RaysMap.begin(); i != RaysMap.end(); ++i)
-	{
-		RaysRoi.push_back( i->second );
-		/*
-		cout << "coordenada: " << "(" << i->first.first << "," << i->first.second << ") --> rayos: ";
-		for (std::vector<pair<int,int> >::iterator it = i->second.begin(); it != i->second.end(); ++it)
-		{
-			cout << "(" << it->first << "," << it->second << ") , ";			
-		}
-		cout << endl;
-		*/
+	for (std::map<pair<int,int>,vector<pair<float,float>>>::iterator i = RaysMap.begin(); i != RaysMap.end(); ++i){
+		RaysRoi.push_back( Normalize(i->second,SizeNorm) );
 	}
 
+	return (RaysRoi);
+}
 
-//	video.release();	
+template<typename T>
+vector<pair<float,float>> RaysExtractor<T>::Normalize(const vector<pair<float,float>> rays,const int SizeNorm){
+	float rate = float(rays.size()) / float(SizeNorm) ; 
+	vector<pair<float,float>> NormalizeRays;	
 
+	float first,second,RemanentRate;
+	float RemanentActual = 1.0;
+	for (int i = 0,j = 0; i < SizeNorm; ++i)
+	{
+		first  		 = 0.0;
+		second 		 = 0.0;
+		RemanentRate = rate;
+
+		while(RemanentRate > 0.0){
+			if(RemanentRate >= RemanentActual){
+				first         += RemanentActual * float(rays[j].first); 
+				second        += RemanentActual * float(rays[j].second);
+				RemanentRate  -= RemanentActual;
+				RemanentActual = 1.0;	
+				j++;						
+			}
+			else{
+				first          += RemanentRate * float(rays[j].first);
+				second         += RemanentRate * float(rays[j].second);
+				RemanentActual -= RemanentRate;
+				RemanentRate    = 0.0;
+			}
+		}
+
+		NormalizeRays.push_back(make_pair(first,second));
+	}
+
+	return (NormalizeRays);
 }

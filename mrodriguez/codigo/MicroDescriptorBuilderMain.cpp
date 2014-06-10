@@ -6,15 +6,16 @@ using namespace std;
 
 int main(int argc, char const *argv[])
 {
-	if(argc < 3){
+	if(argc < 5){
 		cout << "Error en los argumentos" << endl;
+		cout << "./Codigo <Lista de entrada> <Lista de salida> <Support Region Size> <Normalization Size>" << endl;
 		return (-1);
 	}
 	string in(argv[1]);
 	string out(argv[2]);
 
 	MicroDescriptorBuilder<uchar> MyMicroDescriptorBuilder(in,out);
-	MyMicroDescriptorBuilder.Build();
+	MyMicroDescriptorBuilder.Build(atoi(argv[3]),atoi(argv[4]));
 
 	return 0;
 }
