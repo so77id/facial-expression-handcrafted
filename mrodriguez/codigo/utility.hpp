@@ -84,6 +84,59 @@ namespace utility{
 
 		return (roi);
 	}
+
+	vector<string> split(string str,string sep){
+	    char* cstr = const_cast<char*>(str.c_str());
+	    char* current;
+	    vector<string> arr;
+	    current = strtok(cstr,sep.c_str());
+	    while(current != NULL){
+	        arr.push_back(current);
+	        current=strtok(NULL,sep.c_str());
+	    }
+	    return arr;
+	}
+
+	float EuclideanDistance(const Mat & vec1,const Mat &vec2){
+		float sum = 0;
+		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
+			for (int i = 0; i < vec1.cols; ++i)
+			{
+				sum += pow((vec1.at<float>(0,i) - vec2.at<float>(0,i)),2);			
+			}	
+		}
+		return (sqrt(sum));		
+	}
+
+	float ManhattanDistance(const Mat & vec1,const Mat &vec2){
+		float sum = 0;
+		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
+			for (int i = 0; i < vec1.cols; ++i)
+			{
+				sum += abs((vec1.at<float>(0,i) - vec2.at<float>(0,i)));			
+			}	
+		}
+		return (sum);	
+	}
+
+	float HammingDistance(const Mat & vec1,const Mat &vec2){
+		float sum = 0;
+		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
+			for (int i = 0; i < vec1.cols; ++i)
+			{
+				sum += vec1.at<float>(0,i) == vec2.at<float>(0,i) ? 0 : 1;			
+			}	
+		}
+		return (sum);	
+	}
+
+	float CosineDistance(const Mat & vec1,const Mat &vec2){
+		float sum = 0;
+		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
+			sum = vec1.dot(vec2) / (norm(vec1) * norm(vec2));	
+		}
+		return (sum);	
+	}
 }
 
 /*

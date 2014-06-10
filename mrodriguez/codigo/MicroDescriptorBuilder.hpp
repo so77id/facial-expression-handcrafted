@@ -48,14 +48,13 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int Siz
 	int    VideoId;
 	int    nVideoFrames;
 
-	int count = 0;
+	int descount = 1;
+	outFile_ << 2*SizeNorm << endl;
 	while(!inFile_.eof()){
 
-		if(count > 4) {break;}
-		count++;
 
 		inFile_ >> VideoPath >> VideoId >>VideoClass >> nVideoFrames;
-		outFile_ << 2*SizeNorm << endl;
+
 
 		VideoCapture Video;
 		Video.open(VideoPath);
@@ -65,7 +64,7 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int Siz
 		int ROI = 1;	
 		for (std::vector<vector<pair<float,float>>>::iterator i = Rays.begin(); i != Rays.end(); ++i)
 		{
-			outFile_ << VideoId << " " << ROI;
+			outFile_ << descount++ << " " << VideoId << " " << ROI;
 
 			for (std::vector<pair<float,float>>::iterator j = i->begin(); j != i->end(); ++j)
 			{
