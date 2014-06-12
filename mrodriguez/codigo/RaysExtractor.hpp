@@ -17,7 +17,7 @@ class RaysExtractor
 	private:
 		T MSE(T, T);
 		T SumMSE(const ROI&, const ROI&, const Mat&, const Mat &);
-		pair<float,float> ComputeFlow(const pair<int,int> &, const ROI &,const ROI &, const Mat &, Mat &,const int);
+		pair<float,float> ComputeFlow(const pair<int,int> &, const ROI &,const ROI &, const Mat &, Mat &,const int,const int);
 	public:
 		vector<vector<pair<float,float>>> Extract(VideoCapture &,const int, const int);
 		vector<pair<float,float>> Normalize(const vector<pair<float,float>>,const int);
@@ -51,7 +51,7 @@ T RaysExtractor<T>::SumMSE(const ROI& SupportRegion, const ROI& RoiWS,const Mat 
 //SR SupportRegion
 //WS Windows Search
 template<typename T>
-pair<float,float> RaysExtractor<T>::ComputeFlow(const pair<int,int> &point0, const ROI &SR ,const ROI &WS, const Mat &ISR, Mat &IWS,const int size){
+pair<float,float> RaysExtractor<T>::ComputeFlow(const pair<int,int> &point0, const ROI &SR ,const ROI &WS, const Mat &ISR, Mat &IWS,const int size, const int nFrames){
 	
 	vector<pair<T,pair<int,int>>> MSE_vector;	
 	using MSE_vector_iterator = typename std::vector<pair<T,pair<int,int> > >::iterator;
@@ -80,7 +80,7 @@ pair<float,float> RaysExtractor<T>::ComputeFlow(const pair<int,int> &point0, con
 	}
 
 	//cout << (point0.first - point1.first) << endl;
-	return( std::make_pair( float(point0.first - point1.first), float(point0.second - point1.second) ) );
+	return( std::make_pair( float(point0.first - point1.first) / float(nFrames), float(point0.second - point1.second) / float(nFrames) ) );
 }
 
 
@@ -94,6 +94,7 @@ vector<vector<pair<float,float>>> RaysExtractor<T>::Extract(VideoCapture &video,
 	}
 	vector<vector<pair<float,float>>> RaysRoi;
 
+	int nFrames = video.get(CV_CAP_PROP_FRAME_COUNT) - 1;
 
 	Mat frame0;
 	video >> frame0;
@@ -114,7 +115,7 @@ vector<vector<pair<float,float>>> RaysExtractor<T>::Extract(VideoCapture &video,
 
   				ROI WindowSearch = CreateRoi(frame1,i,j,(2*size + 1));	
 
-				RaysMap[pixel].push_back( ComputeFlow( pixel, SupportRegion, WindowSearch,frame0,frame1, size) );
+				RaysMap[pixel].push_back( ComputeFlow( pixel, SupportRegion, WindowSearch,frame0,frame1, size, nFrames) );
 			}
 		}
 

@@ -102,10 +102,10 @@ namespace utility{
 		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
 			for (int i = 0; i < vec1.cols; ++i)
 			{
-				sum += pow((vec1.at<float>(0,i) - vec2.at<float>(0,i)),2);			
+				sum += (vec1.at<float>(0,i) - vec2.at<float>(0,i)) * (vec1.at<float>(0,i) - vec2.at<float>(0,i)) ;			
 			}	
 		}
-		return (sqrt(sum));		
+		return (sum);		
 	}
 
 	float ManhattanDistance(const Mat & vec1,const Mat &vec2){

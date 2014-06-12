@@ -36,17 +36,22 @@ int main(int argc, char const *argv[])
 
 
 	//TEST NORMALIZACION
+/*	RaysExtractor<uchar> Extractor;
+	vector<pair<float,float>> Rays;
+	int tam ;
+	int fin ;
+	cin >> tam >> fin;
 
-/*	vector<pair<float,float>> Rays;
-	for(int i = 0; i < 5; i++){
-		int first,second;
+	for(int i = 0; i < tam; i++){
+		float first,second;
 		cin >> first >> second;
 		Rays.push_back(make_pair(first,second));
 	}
 
-	vector<pair<float,float>> normRays = Extractor.Normalize(Rays,1);
+	vector<pair<float,float>> normRays = Extractor.Normalize(Rays,fin);
 
 	float sum = 0;
+	cout << endl;
 	for (std::vector<pair<float,float>>::iterator i = normRays.begin(); i != normRays.end(); ++i)
 	{
 		sum += i->first;

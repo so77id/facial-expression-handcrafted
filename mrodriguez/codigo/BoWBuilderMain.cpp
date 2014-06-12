@@ -21,20 +21,11 @@ int main(int argc, char const *argv[])
 
 	BoWBuilder MyBow(in,out,atoi(argv[3]));
 	MyBow.LoadDescriptors();
-	MyBow.ExtractClusters(KMEANS_RANDOM_CENTERS);
+	MyBow.ExtractClusters(utility::EuclideanDistance);
 
-	int size = MyBow.GetSizeDescriptors();
-
-	for (int i = 0; i < size; ++i)
-	{
-		int cluster = MyBow.Classify(MyBow.GetDescriptor(i), utility::EuclideanDistance);
-		frec[cluster]++;
-	}
-
-	for(int ix = 0; ix < atoi(argv[3]); ix++){
-		cout << "El cluster " << ix << " tiene: " << frec[ix] << endl;
-	}
-
+	MyBow.BuildMacroDescriptors();
+	
+	cout << "asd" << endl;
 
 	return 0;
 }

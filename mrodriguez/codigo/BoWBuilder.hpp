@@ -1,5 +1,7 @@
 #include <fstream>
 #include <string>
+#include <map>
+#include <vector>
 #include <opencv2/opencv.hpp>
 #include "utility.hpp"
 
@@ -17,6 +19,9 @@ class BoWBuilder
 		size_t  NumberOfClusters_;
 		Mat Clusters_;
 		Mat MicroDescriptors_;
+		map<pair<int,int>,vector<int>> VideoRoi_Rays_; // pair -> video_id, roi_id -> vector de rays id - 1
+		map<int,vector<int>> VideoRoi_; // video_id -> vector de roi
+		map<int,vector<int>> ClusterRays_; // id_cluster -> id_rays -1
 	public:
 		BoWBuilder(const string &,const string &,const size_t);
 		~BoWBuilder();
@@ -24,8 +29,9 @@ class BoWBuilder
 		bool LoadDescriptors();
 		Mat GetDescriptor(const int);
 		int GetSizeDescriptors();
-		bool ExtractClusters(int,int,TermCriteria);
+		bool ExtractClusters(float (*)(const Mat&, const Mat&),int,int,TermCriteria);
 		int Classify(const Mat &,float (*)(const Mat &, const Mat &));
+		bool BuildMacroDescriptors();
 };
 
 BoWBuilder::BoWBuilder(const string &inFile,const string &outFile, const size_t NumberOfClusters){
@@ -53,8 +59,10 @@ bool BoWBuilder::LoadDescriptors(){
 	SizeOfVector_ = std::stoi(buffer);
 
 	cout << SizeOfVector_ << endl;
+
 	int video_id, roi, ray_id;
-	
+
+
 	vector<vector<float>> VectorMicroDescriptors_;
 	cout << "Leyendo archivo" << endl;
 	while(! inFile_.eof()){
@@ -69,9 +77,17 @@ bool BoWBuilder::LoadDescriptors(){
 		video_id = std::stoi(Vbuffer[1]);
 		roi      = std::stoi(Vbuffer[2]);
 
-		//cout << "Video ID: "<< video_id << " ROI:" << roi << " Descriptor: " << count++ << endl;
-		
+		pair<int,int> video_roi(video_id,roi);
+		map<pair<int,int>,vector<int>>::iterator it_vrr = VideoRoi_Rays_.find(video_roi);
 
+		if(it_vrr != VideoRoi_Rays_.end()){
+			it_vrr->second.push_back(ray_id - 1);
+		}
+		else{
+			VideoRoi_Rays_[video_roi].push_back(ray_id - 1);
+			VideoRoi_[video_id].push_back(roi);
+		}
+		//cout << "Video ID: "<< video_id << " ROI:" << roi << " Descriptor: " << count++ << endl;
 		vector<float> MicroDescriptor;
 		for (int i = 3; i < (SizeOfVector_ + 3); ++i)
 		{
@@ -102,21 +118,24 @@ int BoWBuilder::GetSizeDescriptors(){
 
 int BoWBuilder::Classify(const Mat &Ray, float (*cmp)(const Mat &,const Mat &)){
 	float min   = -1.0;
-	int dist    = -2;
+	float dist    = -2;
 	int cluster = -1;
 	for (int i = 0; i < Clusters_.rows; ++i)
 	{
 		dist = cmp(Clusters_.row(i),Ray);
+
+		//cout << "Cluster " << i << " Distancia: " << dist << endl;
 		if(dist >= min){
 			cluster = i;
 			min     = dist;
 		}
+		//cin.get();
 	}
 
 	return(cluster);
 }
 
-bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001)){
+bool BoWBuilder::ExtractClusters(float (*cmp)(const Mat &,const Mat &),int retries=1, int flags=KMEANS_PP_CENTERS, TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001)){
 	
     cout << "Creando BOW" << endl;  
     BOWKMeansTrainer bowTrainer(NumberOfClusters_,tc,retries,flags);
@@ -125,7 +144,54 @@ bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, Ter
 	cout << "Extrayendo clusters" << endl;
 	Clusters_ = bowTrainer.cluster(); 
 
+	for (int i = 0; i < MicroDescriptors_.rows; ++i)
+	{
+		ClusterRays_[Classify(MicroDescriptors_.row(i),cmp)].push_back(i);
+	}
 
 	return (true);
+}
 
+bool BoWBuilder::BuildMacroDescriptors(){
+
+	pair<int,int> RayRoi;
+	vector<int> Rays;
+	
+	cout << "construyendo macro" << endl;
+	for (std::map<int,vector<int>>::iterator video = VideoRoi_.begin(); video != VideoRoi_.end(); ++video)
+	{
+		vector<int> MacroDescriptor;
+		RayRoi.first = video->first;
+		for (std::vector<int>::iterator roi = video->second.begin(); roi != video->second.end(); ++roi)
+		{
+			RayRoi.second = *roi;
+			Rays = VideoRoi_Rays_[RayRoi];
+
+			vector<int> MacroDescriptorRoi(Clusters_.rows,0);
+			int i = 0;
+			for(std::map<int,vector<int>>::iterator cluster = ClusterRays_.begin(); cluster != ClusterRays_.end() ; ++cluster)
+			{
+				for (std::vector<int>::iterator ray = cluster->second.begin(); ray != cluster->second.end(); ++ray)
+				{
+					if(std::binary_search(Rays.begin(),Rays.end(),*ray)){
+						MacroDescriptorRoi[i]++;
+					}
+				}
+				i++;
+			}
+
+			for (std::vector<int>::iterator it = MacroDescriptorRoi.begin(); it != MacroDescriptorRoi.end(); ++it)
+			{
+				MacroDescriptor.push_back(*it);
+			}
+		}
+		cout << "Video: " << video->first << endl;
+		for (std::vector<int>::iterator it = MacroDescriptor.begin(); it != MacroDescriptor.end(); ++it)
+		{
+				cout << *it << " ";
+		}
+		cout << endl;
+	}
+
+	return(true);
 }
