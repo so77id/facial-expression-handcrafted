@@ -144,6 +144,19 @@ bool BoWBuilder::ExtractClusters(float (*cmp)(const Mat &,const Mat &),int retri
 	cout << "Extrayendo clusters" << endl;
 	Clusters_ = bowTrainer.cluster(); 
 
+
+	cout << "----------------" << endl;
+	for (int i = 0; i < Clusters_.rows; ++i)
+	{
+		for (int j = 0; j < Clusters_.cols; ++j)
+		{
+			cout << Clusters_.at<float>(i,j) << " ";
+		}
+		cout << endl;
+	}
+	cout << "----------------" << endl;
+
+
 	for (int i = 0; i < MicroDescriptors_.rows; ++i)
 	{
 		ClusterRays_[Classify(MicroDescriptors_.row(i),cmp)].push_back(i);
@@ -157,6 +170,8 @@ bool BoWBuilder::BuildMacroDescriptors(){
 	pair<int,int> RayRoi;
 	vector<int> Rays;
 	
+	outFile_ << Clusters_.rows << endl; // largo de los macro
+
 	cout << "construyendo macro" << endl;
 	for (std::map<int,vector<int>>::iterator video = VideoRoi_.begin(); video != VideoRoi_.end(); ++video)
 	{
@@ -185,12 +200,13 @@ bool BoWBuilder::BuildMacroDescriptors(){
 				MacroDescriptor.push_back(*it);
 			}
 		}
-		cout << "Video: " << video->first << endl;
+
+		outFile_ << video->first;
 		for (std::vector<int>::iterator it = MacroDescriptor.begin(); it != MacroDescriptor.end(); ++it)
 		{
-				cout << *it << " ";
+				outFile_ << " " << *it;
 		}
-		cout << endl;
+		outFile_ << endl;
 	}
 
 	return(true);
