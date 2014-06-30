@@ -65,6 +65,7 @@ bool BoWBuilder::LoadDescriptors(){
 
 	vector<vector<float>> VectorMicroDescriptors_;
 	cout << "Leyendo archivo" << endl;
+	int c = 0;
 	while(! inFile_.eof()){
 		getline(inFile_,buffer);
 
@@ -76,6 +77,8 @@ bool BoWBuilder::LoadDescriptors(){
 		ray_id   = std::stoi(Vbuffer[0]);
 		video_id = std::stoi(Vbuffer[1]);
 		roi      = std::stoi(Vbuffer[2]);
+
+		if (video_id == 16) continue;
 
 		pair<int,int> video_roi(video_id,roi);
 		map<pair<int,int>,vector<int>>::iterator it_vrr = VideoRoi_Rays_.find(video_roi);
@@ -95,6 +98,8 @@ bool BoWBuilder::LoadDescriptors(){
 		}
 		VectorMicroDescriptors_.push_back(std::move(MicroDescriptor));
 	}
+
+	cout << "cantidad de rayos ingresados: " << c << endl;
 
 	cout << "creando matriz de descriptores" << endl;
 	Mat MatMicroDescriptors_(VectorMicroDescriptors_.size(), VectorMicroDescriptors_.at(0).size(), CV_32F);
@@ -138,8 +143,13 @@ int BoWBuilder::Classify(const Mat &Ray, float (*cmp)(const Mat &,const Mat &)){
 bool BoWBuilder::ExtractClusters(float (*cmp)(const Mat &,const Mat &),int retries=1, int flags=KMEANS_PP_CENTERS, TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001)){
 	
     cout << "Creando BOW" << endl;  
-    BOWKMeansTrainer bowTrainer(NumberOfClusters_,tc,retries,flags);
+    BOWKMeansTrainer bowTrainer(NumberOfClusters_);
 	bowTrainer.add(MicroDescriptors_);
+
+	//for (int i = 0; i < MicroDescriptors_.rows; ++i)
+//	{
+	//	bowTrainer.add(MicroDescriptors_.row(i));
+//	}
 	
 	cout << "Extrayendo clusters" << endl;
 	Clusters_ = bowTrainer.cluster(); 
@@ -156,12 +166,22 @@ bool BoWBuilder::ExtractClusters(float (*cmp)(const Mat &,const Mat &),int retri
 	}
 	cout << "----------------" << endl;
 
+	cv::Ptr<cv::DescriptorMatcher > matcher = new cv::BFMatcher(cv::NORM_L2);
+	matcher->add(std::vector<cv::Mat>(1, Clusters_));
+	// matches
+	vector<DMatch> matches;
+	matcher->match(MicroDescriptors_,matches);
 
-	for (int i = 0; i < MicroDescriptors_.rows; ++i)
+	int j= 0;
+	for (vector<DMatch>::iterator it = matches.begin(); it != matches.end(); ++it)
 	{
-		ClusterRays_[Classify(MicroDescriptors_.row(i),cmp)].push_back(i);
-	}
+		int id = matches[j].trainIdx; 
 
+		ClusterRays_[id].push_back(j);
+
+		j++;
+	}
+	cout << "Cantidad de rayos ingresados: " << j << endl;
 	return (true);
 }
 
@@ -173,6 +193,10 @@ bool BoWBuilder::BuildMacroDescriptors(){
 	outFile_ << Clusters_.rows << endl; // largo de los macro
 
 	cout << "construyendo macro" << endl;
+
+	
+
+
 	for (std::map<int,vector<int>>::iterator video = VideoRoi_.begin(); video != VideoRoi_.end(); ++video)
 	{
 		vector<int> MacroDescriptor;
