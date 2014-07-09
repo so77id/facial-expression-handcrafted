@@ -15,3 +15,6 @@ target_link_libraries(BoWBuilderMain ${OpenCV_LIBS})
 
 add_executable(svm "svm")
 target_link_libraries(svm ${OpenCV_LIBS})
+
+add_executable(kFoldCreatorFiles "kFoldCreatorFiles")
+target_link_libraries(kFoldCreatorFiles ${OpenCV_LIBS})

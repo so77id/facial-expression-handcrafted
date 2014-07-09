@@ -148,7 +148,7 @@ int main(int argc, char const *argv[])
 	CvSVMParams params;
     params.svm_type    = CvSVM::C_SVC;
     params.kernel_type = CvSVM::LINEAR;
-    params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100, 1e-6);
+    params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
 
 
     CvSVM SVM;
