@@ -137,6 +137,33 @@ namespace utility{
 		}
 		return (sum);	
 	}
+
+	float TransformLabels(int i){
+		float dato = 0.0;
+
+		switch (i){
+			case 1:
+				dato = -1.0;
+				break;
+			case 2:
+				dato = -0.6;
+				break;
+			case 3:
+				dato = -0.2;
+				break;
+			case 4:
+				dato = 0.2;
+				break;
+			case 5:
+				dato = 0.6;
+				break;
+			case 6:
+				dato = 1.0;
+				break;
+		}
+		return dato;
+	}
+
 }
 
 /*

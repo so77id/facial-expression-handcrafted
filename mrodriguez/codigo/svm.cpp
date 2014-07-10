@@ -1,13 +1,42 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <utility>
+	#include <utility>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/ml/ml.hpp>
 
 using namespace std;
 using namespace cv;
+
+
+float TransformLabels(int i){
+
+	float dato = 0.0;
+
+	switch (i){
+		case 1:
+			dato = -1.0;
+			break;
+		case 2:
+			dato = -0.6;
+			break;
+		case 3:
+			dato = -0.2;
+			break;
+		case 4:
+			dato = 0.2;
+			break;
+		case 5:
+			dato = 0.6;
+			break;
+		case 6:
+			dato = 1.0;
+			break;
+	}
+	return dato;
+}
+
 
 //archivo con macrodescriptores
 //archivo con clases para video
@@ -141,7 +170,6 @@ int main(int argc, char const *argv[])
 
     cout << trainingDataMat.rows << endl;
     cout << labelsMat.rows << endl;
-
 
 
 

@@ -58,6 +58,8 @@ int main(int argc, char const *argv[])
 
 	ifstream inList(argv[1]);
 	string path(argv[2]); //../foo/kfrold/
+	ofstream kFoldConfigFile(path + "kFold_config.txt");
+
 	int CountTest  = std::atoi(argv[3]);
 	int Percentaje = std::atoi(argv[4]);
 
@@ -65,12 +67,14 @@ int main(int argc, char const *argv[])
 	map<int,int> ClassPercentil;
 
 
-	if (!inList.good())
+	if (!inList.good() || !kFoldConfigFile.good())
 	{
 		cout << "El archivo falla" << endl;	
 		return(-1);
 	}
 
+
+	kFoldConfigFile << CountTest << endl;
 
 
 	while(!inList.eof()){
@@ -89,11 +93,13 @@ int main(int argc, char const *argv[])
 
 	for (int i = 0; i < CountTest; ++i)
 	{
-		string train = path + "train_" + std::to_string(i+1) + ".dat";
-		string test = path + "test_" + std::to_string(i+1) + ".dat";
+		string train = path + "train_" + std::to_string(i+1) + ".txt";
+		string test = path + "test_" + std::to_string(i+1) + ".txt";
 			
 		//cout << "Abro " << train << endl;
 		//cout << "Abro " << test << endl;	
+
+		kFoldConfigFile << (i+1) << " " << train << " " << test << endl;
 
 		ofstream newTrain(train);
 		ofstream newTest(test);
@@ -142,6 +148,8 @@ int main(int argc, char const *argv[])
 		newTrain.close();
 		newTest.close();
 	}
+
+	kFoldConfigFile.close();
 
 
 
