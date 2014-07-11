@@ -19,7 +19,7 @@ class kFoldCrossValidation
 		ifstream LabelsFile_;
 		//Mat MacroDescriptors_; //Mat con los descriptores
 		map<int,vector<int>> MacroDescriptors_; // Mapa con los macrodescriptores
-		map<int,vector<int>> MacroDescriptorsLabels_;
+		map<int,int> MacroDescriptorsLabels_;
 		//Mat MacroDescriptorsLabels_; //Mat con las etiquetas de los descriptores
 		int nClusters_;	//tamaño de los descriptores
 		int kFolds_; //cantidad de kfolds
@@ -35,6 +35,7 @@ class kFoldCrossValidation
 		bool loadDescriptors();
 		void buildConfusionMatrix();
 		void runKfoldCrossValidation();
+		double GetAccuracy();
 };
 
 kFoldCrossValidation::kFoldCrossValidation(string kFoldConfigFile, string MacroDescriptorFile, string LabelsFile, CvSVMParams Params){
@@ -147,12 +148,36 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 
 	for (int i = 0; i < kFolds_; ++i)
 	{
-		Mat testData(kFoldInstance[i].first.size(),nClusters_,CV_32F);
+		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32F);
+		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32F);
+		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32F);
+		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32F);
+
 
 		int row = 0, col;
 		for (std::vector<int>::iterator it = kFoldInstance[i].first.begin(); it != kFoldInstance[i].first.end(); ++it)
 		{
 			col = 0;
+			trainDataLabels.at<float>(row,0) = utility::TransformLabels(MacroDescriptorsLabels_[*it]);
+
+			for (std::vector<int>::iterator it_descriptors = MacroDescriptors_[*it].begin(); it_descriptors != MacroDescriptors_[*it].end(); ++it_descriptors)
+			{
+				trainData.at<float>(row,col) = *it_descriptors;
+				col++;
+			}
+			row++;
+		}
+
+
+		SVM_.train(trainData, trainDataLabels, Mat(), Mat(), Params_);
+
+
+		row = 0;
+		for (std::vector<int>::iterator it = kFoldInstance[i].second.begin(); it != kFoldInstance[i].second.end(); ++it)
+		{
+			col = 0;
+			testDataLabels.at<float>(row,0) = utility::TransformLabels(MacroDescriptorsLabels_[*it]);
+
 			for (std::vector<int>::iterator it_descriptors = MacroDescriptors_[*it].begin(); it_descriptors != MacroDescriptors_[*it].end(); ++it_descriptors)
 			{
 				testData.at<float>(row,col) = *it_descriptors;
@@ -161,19 +186,29 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 			row++;
 		}
 
-		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32F);
 
-		row = 0;
-		for (std::vector<int>::iterator it_labels = kFoldInstance[i].second.begin(); it_labels != kFoldInstance[i].second.end(); ++it_labels)
+		int HitCounter = 0;
+		for (int r = 0; r < testData.rows; ++r)
 		{
-			testDataLabels.at<float>(row,0) = utility::TransformLabels(*it_labels);
-			row++;
+			if( testDataLabels.at<float>(r,0) ==  SVM_.predict(testData.row(r))){
+				HitCounter++;
+			}
 		}
 
-
-		SVM_.train(testData, testDataLabels, Mat(), Mat(), Params_);
-
-		//falta clasificar
+		Accuracy_[i] = (HitCounter * 1.0) / (testData.rows * 1.0);
 	}
 
+}
+
+
+double kFoldCrossValidation::GetAccuracy(){
+
+	double accuracy = 0.0;
+
+	for (std::vector<double>::iterator it = Accuracy_.begin(); it != Accuracy_.end(); ++it)
+	{
+		accuracy += *it;
+	}
+
+	return (accuracy / (Accuracy_.size()*1.0));
 }
