@@ -159,10 +159,10 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 	{
 		cout << "Validacion cruzada numero: " << i +1 << endl;
 
-		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32FC1);
-		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32FC1);
-		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32FC1);
-		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32FC1);
+		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32F);
+		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32F);
+		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32F);
+		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32F);
 
 
 		int row = 0, col;
