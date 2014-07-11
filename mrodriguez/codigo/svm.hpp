@@ -72,7 +72,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 	}
 
 
-	/*MacroDescriptors_ =  Mat(MacrodescriptorsMap.size(), nClusters_, CV_32F);
+	/*MacroDescriptors_ =  Mat(MacrodescriptorsMap.size(), nClusters_, CV_32FC2);
 
 	i = 0;
 	for (std::map<int,vector<int>>::iterator it_map = MacrodescriptorsMap.begin(); it_map != MacrodescriptorsMap.end(); ++it_map)
@@ -100,7 +100,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 	}
 
 
-/*	MacroDescriptorsLabels_ = Mat(MacrodescriptorsLabelsMap.size(), 1, CV_32F);
+/*	MacroDescriptorsLabels_ = Mat(MacrodescriptorsLabelsMap.size(), 1, CV_32FC2);
 	
 	int i = 0;
 	for (std::map<int,int>::iterator it = MacrodescriptorsLabelsMap.begin(); it != MacrodescriptorsLabelsMap.end(); ++it)
@@ -159,10 +159,10 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 	{
 		cout << "Validacion cruzada numero: " << i +1 << endl;
 
-		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32F);
-		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32F);
-		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32F);
-		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32F);
+		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32FC2);
+		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32FC2);
+		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32FC2);
+		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32FC2);
 
 
 		int row = 0, col;
