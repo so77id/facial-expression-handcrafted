@@ -52,6 +52,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 	}
 
 //-----------------------------------------Extraccion de macrodescriptores----------------------------------
+	cout << "\t Cargando macrodescriptores" << endl;
 
 	MacroDescriptorFile_ >>	nClusters_;
 	map<int,vector<int>> MacroDescriptors_;
@@ -84,6 +85,8 @@ bool kFoldCrossValidation::loadDescriptors(){
 
 //--------------------------------------------Extraccion de labels del archivo-----------------------------------------
 
+	cout << "\t Cargando labels" << endl;
+
 	int index, class_, frames;
 	string buffer;
 	map<int,int> MacroDescriptorsLabels_;
@@ -107,6 +110,9 @@ bool kFoldCrossValidation::loadDescriptors(){
 	}
 */
 //-------------------------------------------Carga de los datos de prueba----------------------------------------------	
+
+	cout << "\t Cargando kfolds" << endl;
+
 
 	string train, test;
 	string path; 
