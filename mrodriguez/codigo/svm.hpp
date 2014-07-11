@@ -148,6 +148,8 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 
 	for (int i = 0; i < kFolds_; ++i)
 	{
+		cout << "Validacion cruzada numero: " << i +1 << endl;
+
 		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32F);
 		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32F);
 		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32F);
@@ -168,7 +170,7 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 			row++;
 		}
 
-
+		cout << "\t entrenando" << endl;
 		SVM_.train(trainData, trainDataLabels, Mat(), Mat(), Params_);
 
 
@@ -187,6 +189,8 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 		}
 
 
+
+		cout << "\t prediciendo" << endl;
 		int HitCounter = 0;
 		for (int r = 0; r < testData.rows; ++r)
 		{
@@ -196,6 +200,8 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 		}
 
 		Accuracy_[i] = (HitCounter * 1.0) / (testData.rows * 1.0);
+		
+		cout << "\t Accuracy: " << Accuracy_[i] << endl;
 	}
 
 }

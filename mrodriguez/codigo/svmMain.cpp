@@ -30,7 +30,9 @@ int main(int argc, char const *argv[])
 
 	kFoldCrossValidation kFold(macrodescriptores,video_list,path_kfold, params);
 
+	cout << "Voy a cargar los descriptores" << endl;
 	kFold.loadDescriptors();
+	cout << "Comienzo con la kfold" << endl;
 	kFold.runKfoldCrossValidation();
 
 	cout << "Accuracy: " << kFold.GetAccuracy();
