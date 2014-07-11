@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
     params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
 
 
-	kFoldCrossValidation kFold(macrodescriptores,video_list,path_kfold, params);
+	kFoldCrossValidation kFold(macrodescriptores, path_kfold, video_list, params);
 
 	cout << "Voy a cargar los descriptores" << endl;
 	kFold.loadDescriptors();
