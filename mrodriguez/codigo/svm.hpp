@@ -159,17 +159,17 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 	{
 		cout << "Validacion cruzada numero: " << i +1 << endl;
 
-		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32FC2);
-		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32FC2);
-		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32FC2);
-		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32FC2);
+		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32FC1);
+		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32FC1);
+		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32FC1);
+		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32FC1);
 
 
 		int row = 0, col;
 		for (std::vector<int>::iterator it = kFoldInstance[i].first.begin(); it != kFoldInstance[i].first.end(); ++it)
 		{
 			col = 0;
-			trainDataLabels.at<float>(row,0) = utility::TransformLabels(MacroDescriptorsLabels_[*it]);
+			trainDataLabels.at<float>(row,0) = MacroDescriptorsLabels_[*it];
 
 			for (std::vector<int>::iterator it_descriptors = MacroDescriptors_[*it].begin(); it_descriptors != MacroDescriptors_[*it].end(); ++it_descriptors)
 			{
@@ -187,7 +187,7 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 		for (std::vector<int>::iterator it = kFoldInstance[i].second.begin(); it != kFoldInstance[i].second.end(); ++it)
 		{
 			col = 0;
-			testDataLabels.at<float>(row,0) = utility::TransformLabels(MacroDescriptorsLabels_[*it]);
+			testDataLabels.at<float>(row,0) = MacroDescriptorsLabels_[*it];
 
 			for (std::vector<int>::iterator it_descriptors = MacroDescriptors_[*it].begin(); it_descriptors != MacroDescriptors_[*it].end(); ++it_descriptors)
 			{
