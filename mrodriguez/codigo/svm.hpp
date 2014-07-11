@@ -68,7 +68,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 			MacroDescriptorFile_ >> feature;
 			MacroDescriptors_[id].push_back(feature);
 		}
-		cout << endl;
+		//cout << endl;
 	}
 
 
@@ -182,7 +182,7 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 		cout << "\t entrenando" << endl;
 		SVM_.train(trainData, trainDataLabels, Mat(), Mat(), Params_);
 
-
+		cout << "\t cargando datos de train" << endl;
 		row = 0;
 		for (std::vector<int>::iterator it = kFoldInstance[i].second.begin(); it != kFoldInstance[i].second.end(); ++it)
 		{
