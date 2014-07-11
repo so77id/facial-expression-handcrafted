@@ -55,17 +55,19 @@ bool kFoldCrossValidation::loadDescriptors(){
 	cout << "\t Cargando macrodescriptores" << endl;
 
 	MacroDescriptorFile_ >>	nClusters_;
-	map<int,vector<int>> MacroDescriptors_;
+	//map<int,vector<int>> MacroDescriptors_;
 	int id, feature;
 	
 	while(!MacroDescriptorFile_.eof()){
 		MacroDescriptorFile_ >> id;
-
+		cout << "id: " << id;
 		for (int i = 0; i < nClusters_; ++i)
 		{
+			cout << " " << feature;
 			MacroDescriptorFile_ >> feature;
 			MacroDescriptors_[id].push_back(feature);
 		}
+		cout << endl;
 	}
 
 
