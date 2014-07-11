@@ -38,7 +38,7 @@ class kFoldCrossValidation
 		double GetAccuracy();
 };
 
-kFoldCrossValidation::kFoldCrossValidation(string kFoldConfigFile, string MacroDescriptorFile, string LabelsFile, CvSVMParams Params){
+kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kFoldConfigFile, string LabelsFile, CvSVMParams Params){
 	kFoldConfigFile_.open(kFoldConfigFile);
 	MacroDescriptorFile_.open(MacroDescriptorFile);
 	LabelsFile_.open(LabelsFile);
