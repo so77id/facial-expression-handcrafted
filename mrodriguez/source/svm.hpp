@@ -6,6 +6,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/ml/ml.hpp>
 #include "utility.hpp"
+#include <cstdio>
 
 using namespace std;
 using namespace cv; 
@@ -17,6 +18,7 @@ class kFoldCrossValidation
 		ifstream kFoldConfigFile_; //Archivo con los datos con las rutas a cada una de las instancias de prueba
 		ifstream MacroDescriptorFile_; //Archivo con los macrodescriptores
 		ifstream LabelsFile_;
+		string kFoldPath_;
 		//Mat MacroDescriptors_; //Mat con los descriptores
 		map<int,vector<int>> MacroDescriptors_; // Mapa con los macrodescriptores
 		map<int,int> MacroDescriptorsLabels_;
@@ -26,7 +28,7 @@ class kFoldCrossValidation
 		map<int,pair<vector<int>,vector<int>>> kFoldInstance; //mapa indexado por numero de ejmeplo de kfold y tiene un
 												        // par de vectores con los datos de entrenamiento y los de test
 		CvSVMParams Params_; // Parametros del SVM
-		CvSVM SVM_; 		 // SVM
+		
 		vector<double> Accuracy_;    // vector de presiciones 
 
 	public:
@@ -38,8 +40,9 @@ class kFoldCrossValidation
 		double GetAccuracy();
 };
 
-kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kFoldConfigFile, string LabelsFile, CvSVMParams Params){
-	kFoldConfigFile_.open(kFoldConfigFile);
+kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kFoldPath, string LabelsFile, CvSVMParams Params){
+	kFoldPath_ = kFoldPath;
+	kFoldConfigFile_.open(kFoldPath_ + "kFold_config.txt");
 	MacroDescriptorFile_.open(MacroDescriptorFile);
 	LabelsFile_.open(LabelsFile);
 	Params_ = Params;
@@ -48,6 +51,7 @@ kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kF
 bool kFoldCrossValidation::loadDescriptors(){
 
 	if( !kFoldConfigFile_.good() || !MacroDescriptorFile_.good() || !LabelsFile_.good()){
+		cout << "Sali por aca" << endl;
 		return(false);
 	}
 
@@ -55,7 +59,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 	cout << "\t Cargando macrodescriptores" << endl;
 
 	MacroDescriptorFile_ >>	nClusters_;
-	cout << "Clusters " << nClusters_ << endl;
+	cout << "\t\tClusters " << nClusters_ << endl;
 	//map<int,vector<int>> MacroDescriptors_;
 	int id, feature;
 	
@@ -66,6 +70,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 		{
 			//cout << " " << feature;
 			MacroDescriptorFile_ >> feature;
+
 			MacroDescriptors_[id].push_back(feature);
 		}
 		//cout << endl;
@@ -92,11 +97,13 @@ bool kFoldCrossValidation::loadDescriptors(){
 
 	int index, class_, frames;
 	string buffer;
-	map<int,int> MacroDescriptorsLabels_;
+	//map<int,int> MacroDescriptorsLabels_;
 
 	while(!LabelsFile_.eof()){
 		LabelsFile_ >> buffer >> index >> class_ >> frames;
+		//cout << buffer << " " << index << " " << class_ << " " << frames << endl;
 		MacroDescriptorsLabels_[index] = class_;
+		//cout << MacroDescriptorsLabels_[index] << endl;
 	}
 
 
@@ -123,28 +130,34 @@ bool kFoldCrossValidation::loadDescriptors(){
 
 	kFoldConfigFile_ >> kFolds_;
 
+	//cout << kFolds_ << endl;
+
 	Accuracy_ = vector<double>(kFolds_,0.0);
 
 	for (int i = 0; i < kFolds_; ++i)
 	{
 		kFoldConfigFile_ >> id >> train >> test;
+		//cout << id << " " << train << " " << test << endl;
 
-		ifstream trainFile(train);
-		ifstream testFile(test);
+		ifstream trainFile( kFoldPath_ + train);
+		ifstream testFile( kFoldPath_ + test);
 
 		if(!trainFile.good() || !testFile.good()){
+			cout << "no abrio el archivo" << endl;
 			return (false);
 		}
 
+		//cout << "TrainFile: " << endl;
 		while(!trainFile.eof()){
 			trainFile >> path >> video_id >> class_ >> frames;
-
+			//cout << "\t" << video_id << endl;
 			kFoldInstance[i].first.push_back(video_id);
 		}
 
+		//cout << "TestFile: " << endl;
 		while(!testFile.eof()){
 			testFile >> path >> video_id >> class_ >> frames;
-
+			//cout << "\t" << video_id << endl;
 			kFoldInstance[i].second.push_back(video_id);
 		}
 	}
@@ -169,6 +182,7 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 		for (std::vector<int>::iterator it = kFoldInstance[i].first.begin(); it != kFoldInstance[i].first.end(); ++it)
 		{
 			col = 0;
+			//cout << "Label: "<< MacroDescriptorsLabels_[*it] << endl;
 			trainDataLabels.at<float>(row,0) = MacroDescriptorsLabels_[*it];
 
 			for (std::vector<int>::iterator it_descriptors = MacroDescriptors_[*it].begin(); it_descriptors != MacroDescriptors_[*it].end(); ++it_descriptors)
@@ -179,7 +193,13 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 			row++;
 		}
 
+		/*for(int i=0; i<trainDataLabels.rows; i++)
+		    for(int j=0; j<trainDataLabels.cols; j++)
+        		printf("trainDataLabels(%d, %d) = %f \n", i, j, trainDataLabels.at<float>(i,j));
+		*/
+
 		cout << "\t entrenando" << endl;
+		CvSVM SVM_;
 		SVM_.train(trainData, trainDataLabels, Mat(), Mat(), Params_);
 
 		cout << "\t cargando datos de train" << endl;

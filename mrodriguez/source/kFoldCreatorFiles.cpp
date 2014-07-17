@@ -46,13 +46,14 @@ ostream& operator<<(ostream& os , Video &MyVideo)
 }
 
 
+//parametrisar el seed
 
 
 int main(int argc, char const *argv[])
 {
-	if(argc < 5){
+	if(argc < 6){
 		cout << "Error en los argumentos" << endl;
-		cout << "./Codigo <Lista de entrada> <Ruta de salida> <cantidad de pruebas> <Porcentaje para pruebas>" << endl;
+		cout << "./Codigo <Lista de entrada> <Ruta de salida> <cantidad de pruebas> <Porcentaje para pruebas> <seed>" << endl;
 		return (-1);
 	}	
 
@@ -60,12 +61,13 @@ int main(int argc, char const *argv[])
 	string path(argv[2]); //../foo/kfrold/
 	ofstream kFoldConfigFile(path + "kFold_config.txt");
 
+
 	int CountTest  = std::atoi(argv[3]);
 	int Percentaje = std::atoi(argv[4]);
+	int seed = std::atoi(argv[5]);
 
 	map<int,vector<Video>> MapVideos;
 	map<int,int> ClassPercentil;
-
 
 	if (!inList.good() || !kFoldConfigFile.good())
 	{
@@ -93,16 +95,16 @@ int main(int argc, char const *argv[])
 
 	for (int i = 0; i < CountTest; ++i)
 	{
-		string train = path + "train_" + std::to_string(i+1) + ".txt";
-		string test = path + "test_" + std::to_string(i+1) + ".txt";
+		string train = "train_" + std::to_string(i+1) + ".txt";
+		string test = "test_" + std::to_string(i+1) + ".txt";
 			
 		//cout << "Abro " << train << endl;
 		//cout << "Abro " << test << endl;	
 
 		kFoldConfigFile << (i+1) << " " << train << " " << test << endl;
 
-		ofstream newTrain(train);
-		ofstream newTest(test);
+		ofstream newTrain(path + train);
+		ofstream newTest(path + test);
 		
 		if (!newTrain.good() || !newTest.good())
 		{
@@ -113,6 +115,7 @@ int main(int argc, char const *argv[])
 		for (std::map<int,int>::iterator Map_it = ClassPercentil.begin(); Map_it != ClassPercentil.end(); ++Map_it)
 		{
 			//cout << "Sacando los de la clase: " << Map_it->first << endl;
+
   			unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 			
 			std::default_random_engine generator(seed);

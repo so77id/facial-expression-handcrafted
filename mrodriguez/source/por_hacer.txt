@@ -1,0 +1,8 @@
+#------------------------------------------------
+cambiar el testing
+cambiar el extracctor de rayos
+correr con toda la base de datos
+#------------------------------------------------
+probar normalizacion en preprocesamiento
+guardadar datos del accuracy
+#------------------------------------------------

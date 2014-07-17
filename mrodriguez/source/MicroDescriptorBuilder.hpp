@@ -51,6 +51,7 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int Siz
 	int descount = 1;
 	outFile_ << 2*SizeNorm << endl;
 
+
 	while(!inFile_.eof()){
 
 		inFile_ >> VideoPath >> VideoId >>VideoClass >> nVideoFrames;

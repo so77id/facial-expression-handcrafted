@@ -29,8 +29,7 @@ class BoWBuilder
 		bool LoadDescriptors();
 		Mat GetDescriptor(const int);
 		int GetSizeDescriptors();
-		bool ExtractClusters(float (*)(const Mat&, const Mat&),int,int,TermCriteria);
-		int Classify(const Mat &,float (*)(const Mat &, const Mat &));
+		bool ExtractClusters(int,int,TermCriteria);
 		bool BuildMacroDescriptors();
 };
 
@@ -121,29 +120,11 @@ int BoWBuilder::GetSizeDescriptors(){
 	return (MicroDescriptors_.rows);
 }
 
-int BoWBuilder::Classify(const Mat &Ray, float (*cmp)(const Mat &,const Mat &)){
-	float min   = -1.0;
-	float dist    = -2;
-	int cluster = -1;
-	for (int i = 0; i < Clusters_.rows; ++i)
-	{
-		dist = cmp(Clusters_.row(i),Ray);
 
-		//cout << "Cluster " << i << " Distancia: " << dist << endl;
-		if(dist >= min){
-			cluster = i;
-			min     = dist;
-		}
-		//cin.get();
-	}
-
-	return(cluster);
-}
-
-bool BoWBuilder::ExtractClusters(float (*cmp)(const Mat &,const Mat &),int retries=1, int flags=KMEANS_PP_CENTERS, TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001)){
+bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001)){
 	
     cout << "Creando BOW" << endl;  
-    BOWKMeansTrainer bowTrainer(NumberOfClusters_);
+    BOWKMeansTrainer bowTrainer(NumberOfClusters_, tc, retries,flags);
 	bowTrainer.add(MicroDescriptors_);
 
 	//for (int i = 0; i < MicroDescriptors_.rows; ++i)
@@ -199,17 +180,22 @@ bool BoWBuilder::BuildMacroDescriptors(){
 
 	for (std::map<int,vector<int>>::iterator video = VideoRoi_.begin(); video != VideoRoi_.end(); ++video)
 	{
+
 		vector<int> MacroDescriptor;
 		RayRoi.first = video->first;
 		for (std::vector<int>::iterator roi = video->second.begin(); roi != video->second.end(); ++roi)
 		{
+
 			RayRoi.second = *roi;
 			Rays = VideoRoi_Rays_[RayRoi];
 
 			vector<int> MacroDescriptorRoi(Clusters_.rows,0);
 			int i = 0;
+			//cout << "size: " << ClusterRays_.size() << endl;
+
 			for(std::map<int,vector<int>>::iterator cluster = ClusterRays_.begin(); cluster != ClusterRays_.end() ; ++cluster)
 			{
+				
 				for (std::vector<int>::iterator ray = cluster->second.begin(); ray != cluster->second.end(); ++ray)
 				{
 					if(std::binary_search(Rays.begin(),Rays.end(),*ray)){

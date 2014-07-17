@@ -21,11 +21,8 @@ int main(int argc, char const *argv[])
 
 	BoWBuilder MyBow(in,out,atoi(argv[3]));
 	MyBow.LoadDescriptors();
-	MyBow.ExtractClusters(utility::EuclideanDistance);
-
+	MyBow.ExtractClusters();
 	MyBow.BuildMacroDescriptors();
 	
-	cout << "asd" << endl;
-
 	return 0;
 }
