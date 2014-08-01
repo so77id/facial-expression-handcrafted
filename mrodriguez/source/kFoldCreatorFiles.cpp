@@ -64,7 +64,7 @@ int main(int argc, char const *argv[])
 
 	int CountTest  = std::atoi(argv[3]);
 	int Percentaje = std::atoi(argv[4]);
-	int seed = std::atoi(argv[5]);
+	//int seed = std::atoi(argv[5]);
 
 	map<int,vector<Video>> MapVideos;
 	map<int,int> ClassPercentil;
@@ -112,15 +112,16 @@ int main(int argc, char const *argv[])
 			return(-1);
 		}
 
+		unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();			
+		std::default_random_engine generator(seed);
+
 		for (std::map<int,int>::iterator Map_it = ClassPercentil.begin(); Map_it != ClassPercentil.end(); ++Map_it)
 		{
 			//cout << "Sacando los de la clase: " << Map_it->first << endl;
 
-  			unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-			
-			std::default_random_engine generator(seed);
 		  	std::uniform_int_distribution<int> distribution(0,MapVideos[Map_it->first].size()-1);
-		  	map<int,bool> RAparition;
+			
+  			map<int,bool> RAparition;
 
 		  	int j = 0;
 		  	while(j < Map_it->second){
