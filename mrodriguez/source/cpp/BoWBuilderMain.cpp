@@ -1,5 +1,5 @@
 #include <iostream>
-#include "BoWBuilder.hpp"
+#include "../header/BoWBuilder.hpp"
 
 using namespace cv;
 using namespace std;
@@ -23,6 +23,6 @@ int main(int argc, char const *argv[])
 	MyBow.LoadDescriptors();
 	MyBow.ExtractClusters();
 	MyBow.BuildMacroDescriptors();
-	
+
 	return 0;
 }

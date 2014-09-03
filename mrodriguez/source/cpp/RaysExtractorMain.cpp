@@ -1,5 +1,5 @@
 #include "opencv2/opencv.hpp"
-#include "RaysExtractor.hpp"
+#include "../header/RaysExtractor.hpp"
 #include <iostream>
 #include <cstdlib>
 
