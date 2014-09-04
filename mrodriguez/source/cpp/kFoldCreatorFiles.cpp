@@ -135,18 +135,15 @@ int main(int argc, char const *argv[])
 				{
 				   j++;
 				   RAparition[number] = true;
-				   cout << MapVideos[Map_it->first][number];
 				   newTest << MapVideos[Map_it->first][number];
 				}
 
 		  	}
 
-
 		  	for (size_t k = 0; k < MapVideos[Map_it->first].size(); ++k)
 		  	{
 		  		map<int,bool>::iterator it = RAparition.find(k);
 		  		if(it == RAparition.end()){
-		  			cout << MapVideos[Map_it->first][k];
 		  			newTrain << MapVideos[Map_it->first][k];
 		  		}
 		  	}
