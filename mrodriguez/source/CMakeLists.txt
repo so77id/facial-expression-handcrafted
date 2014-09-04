@@ -13,8 +13,14 @@ target_link_libraries(MicroDescriptorBuilderMain ${OpenCV_LIBS})
 add_executable(BoWBuilderMain "cpp/BoWBuilderMain")
 target_link_libraries(BoWBuilderMain ${OpenCV_LIBS})
 
-add_executable(svmMain "cpp/svmMain")
-target_link_libraries(svmMain ${OpenCV_LIBS})
+add_executable(kFoldCrossValidationMain "cpp/kFoldCrossValidationMain")
+target_link_libraries(kFoldCrossValidationMain ${OpenCV_LIBS})
 
 add_executable(kFoldCreatorFiles "cpp/kFoldCreatorFiles")
 target_link_libraries(kFoldCreatorFiles ${OpenCV_LIBS})
+
+add_executable(TestFileCreator "cpp/TestFileCreator")
+target_link_libraries(TestFileCreator ${OpenCV_LIBS})
+
+
+

@@ -1,6 +1,6 @@
 #------------------------------------------------
 cambiar el testing
-cambiar el extracctor de rayos
+cambiar el extracctor de rayos //listo sin probar
 correr con toda la base de datos
 #------------------------------------------------
 probar normalizacion en preprocesamiento
