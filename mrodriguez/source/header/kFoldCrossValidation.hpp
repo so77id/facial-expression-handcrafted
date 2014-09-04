@@ -9,7 +9,7 @@
 #include <cstdio>
 
 using namespace std;
-using namespace cv; 
+using namespace cv;
 
 
 class kFoldCrossValidation
@@ -28,8 +28,8 @@ class kFoldCrossValidation
 		map<int,pair<vector<int>,vector<int>>> kFoldInstance; //mapa indexado por numero de ejmeplo de kfold y tiene un
 												        // par de vectores con los datos de entrenamiento y los de test
 		CvSVMParams Params_; // Parametros del SVM
-		
-		vector<double> Accuracy_;    // vector de presiciones 
+
+		vector<double> Accuracy_;    // vector de presiciones
 
 	public:
 		kFoldCrossValidation(string, string, string, CvSVMParams);
@@ -62,7 +62,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 	cout << "\t\tClusters " << nClusters_ << endl;
 	//map<int,vector<int>> MacroDescriptors_;
 	int id, feature;
-	
+
 	while(!MacroDescriptorFile_.eof()){
 		MacroDescriptorFile_ >> id;
 		//cout << "id: " << id;
@@ -86,9 +86,9 @@ bool kFoldCrossValidation::loadDescriptors(){
 		for (std::vector<int>::iterator it_vector = it_map->second.begin(); it_vector != it_map->second.end(); ++it_vector)
 		{
 			MacroDescriptors_.at<float>(i,j) = *it_vector;
-			j++;	
+			j++;
 		}
-		i++;	
+		i++;
 	}*/
 
 //--------------------------------------------Extraccion de labels del archivo-----------------------------------------
@@ -108,7 +108,7 @@ bool kFoldCrossValidation::loadDescriptors(){
 
 
 /*	MacroDescriptorsLabels_ = Mat(MacrodescriptorsLabelsMap.size(), 1, CV_32FC2);
-	
+
 	int i = 0;
 	for (std::map<int,int>::iterator it = MacrodescriptorsLabelsMap.begin(); it != MacrodescriptorsLabelsMap.end(); ++it)
 	{
@@ -119,25 +119,25 @@ bool kFoldCrossValidation::loadDescriptors(){
 		i++;
 	}
 */
-//-------------------------------------------Carga de los datos de prueba----------------------------------------------	
+//-------------------------------------------Carga de los datos de prueba----------------------------------------------
 
 	cout << "\t Cargando kfolds" << endl;
 
 
 	string train, test;
-	string path; 
+	string path;
 	int video_id;
 
 	kFoldConfigFile_ >> kFolds_;
 
-	//cout << kFolds_ << endl;
+	cout << kFolds_ << endl;
 
 	Accuracy_ = vector<double>(kFolds_,0.0);
 
 	for (int i = 0; i < kFolds_; ++i)
 	{
 		kFoldConfigFile_ >> id >> train >> test;
-		//cout << id << " " << train << " " << test << endl;
+		cout << id << " " << train << " " << test << endl;
 
 		ifstream trainFile( kFoldPath_ + train);
 		ifstream testFile( kFoldPath_ + test);
@@ -147,17 +147,17 @@ bool kFoldCrossValidation::loadDescriptors(){
 			return (false);
 		}
 
-		//cout << "TrainFile: " << endl;
+		cout << "TrainFile: " << endl;
 		while(!trainFile.eof()){
 			trainFile >> path >> video_id >> class_ >> frames;
-			//cout << "\t" << video_id << endl;
+			cout << "\t" << video_id << endl;
 			kFoldInstance[i].first.push_back(video_id);
 		}
 
-		//cout << "TestFile: " << endl;
+		cout << "TestFile: " << endl;
 		while(!testFile.eof()){
 			testFile >> path >> video_id >> class_ >> frames;
-			//cout << "\t" << video_id << endl;
+			cout << "\t" << video_id << endl;
 			kFoldInstance[i].second.push_back(video_id);
 		}
 	}
@@ -229,7 +229,7 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 		}
 
 		Accuracy_[i] = (HitCounter * 1.0) / (testData.rows * 1.0);
-		
+
 		cout << "\t Accuracy: " << Accuracy_[i] << endl;
 	}
 
