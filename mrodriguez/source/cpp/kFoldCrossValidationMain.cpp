@@ -1,4 +1,4 @@
-#include "../header/svm.hpp"
+#include "../header/kFoldCrossValidation.hpp"
 #include <iostream>
 
 using namespace std;
@@ -22,11 +22,10 @@ int main(int argc, char const *argv[])
 	string path_kfold(argv[3]);
 
 	CvSVMParams params;
-    params.svm_type    = CvSVM::C_SVC;
-    params.kernel_type = CvSVM::RBF;
-    params.gamma = 20; //2^-x ---> x elevado
-    params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
-
+     	params.svm_type    = CvSVM::C_SVC;
+    	params.kernel_type = CvSVM::RBF;
+    	params.gamma = 20; //2^-x ---> x elevado
+    	params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
 
 	kFoldCrossValidation kFold(macrodescriptores, path_kfold, video_list, params);
 
