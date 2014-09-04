@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
 		cout << "Error en los argumentos" << endl;
 		cout << "./Codigo <Lista de entrada> <Ruta de salida> <cantidad de pruebas> <Porcentaje para pruebas> <seed>" << endl;
 		return (-1);
-	}	
+	}
 
 	ifstream inList(argv[1]);
 	string path(argv[2]); //../foo/kfrold/
@@ -71,7 +71,7 @@ int main(int argc, char const *argv[])
 
 	if (!inList.good() || !kFoldConfigFile.good())
 	{
-		cout << "El archivo falla" << endl;	
+		cout << "El archivo falla" << endl;
 		return(-1);
 	}
 
@@ -97,22 +97,22 @@ int main(int argc, char const *argv[])
 	{
 		string train = "train_" + std::to_string(i+1) + ".txt";
 		string test = "test_" + std::to_string(i+1) + ".txt";
-			
+
 		//cout << "Abro " << train << endl;
-		//cout << "Abro " << test << endl;	
+		//cout << "Abro " << test << endl;
 
 		kFoldConfigFile << (i+1) << " " << train << " " << test << endl;
 
 		ofstream newTrain(path + train);
 		ofstream newTest(path + test);
-		
+
 		if (!newTrain.good() || !newTest.good())
 		{
-			cout << "Los archivos de salida fallan" << endl;	
+			cout << "Los archivos de salida fallan" << endl;
 			return(-1);
 		}
 
-		unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();			
+		unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 		std::default_random_engine generator(seed);
 
 		for (std::map<int,int>::iterator Map_it = ClassPercentil.begin(); Map_it != ClassPercentil.end(); ++Map_it)
@@ -120,7 +120,7 @@ int main(int argc, char const *argv[])
 			//cout << "Sacando los de la clase: " << Map_it->first << endl;
 
 		  	std::uniform_int_distribution<int> distribution(0,MapVideos[Map_it->first].size()-1);
-			
+
   			map<int,bool> RAparition;
 
 		  	int j = 0;
@@ -130,20 +130,23 @@ int main(int argc, char const *argv[])
 		  		//cout << number << endl;
 
 		  		map<int,bool>::iterator it = RAparition.find(number);
-				
+
 				if(it == RAparition.end())
 				{
 				   j++;
 				   RAparition[number] = true;
+				   cout << MapVideos[Map_it->first][number];
 				   newTest << MapVideos[Map_it->first][number];
 				}
 
 		  	}
 
+
 		  	for (size_t k = 0; k < MapVideos[Map_it->first].size(); ++k)
 		  	{
 		  		map<int,bool>::iterator it = RAparition.find(k);
 		  		if(it == RAparition.end()){
+		  			cout << MapVideos[Map_it->first][k];
 		  			newTrain << MapVideos[Map_it->first][k];
 		  		}
 		  	}

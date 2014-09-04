@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
 	for (int i = 1; i <= 168; ++i)
 	{
 
-		if (i > 1) InFile >> endl;
+		if (i > 1) OutFile << endl;
 
 		InFile >> num_video >> Class;
 
