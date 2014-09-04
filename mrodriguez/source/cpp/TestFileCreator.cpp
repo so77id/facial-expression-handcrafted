@@ -37,6 +37,9 @@ int main(int argc, char const *argv[])
 
 	for (int i = 1; i <= 168; ++i)
 	{
+
+		if (i > 1) InFile >> endl;
+
 		InFile >> num_video >> Class;
 
 
@@ -62,7 +65,7 @@ int main(int argc, char const *argv[])
 		}
 
 
-		OutFile << result << endl;
+		OutFile << result;
 	}
 
 	cout << "Min: " << min << " Del video: " << ind << endl;
