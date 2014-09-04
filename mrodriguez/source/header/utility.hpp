@@ -1,3 +1,4 @@
+#pragma once //preguntar que mierda es
 #include <iostream>
 #include "opencv2/opencv.hpp"
 
@@ -7,7 +8,16 @@ using namespace std;
 
 //CenterX => cols
 //CenterY => Rows
+
+
 namespace utility{
+
+	typedef pair<int,int> pixel; // first -> es la coordenada X,  second -> es la coordenada Y
+	typedef pair<pair<int,int>,int> voxel; // first -> pixel (con first -> X, second -> Y) ; second -> coordenada T
+	typedef pair<float,float> RaySupport; //Rayo de soporte, unidad minima de un rayo de flujo (ray flux)
+	typedef vector<RaySupport> RayFlux; //Rayo de flujo
+	typedef vector<RayFlux> ListRaysFlux; // vector de rayos de flujo
+
 
 	class ROI
 	{
@@ -15,8 +25,8 @@ namespace utility{
 			int X_;
 			int Y_;
 			int Height_;
-			int Width_; 
-			int CenterX_; 
+			int Width_;
+			int CenterX_;
 			int CenterY_;
 
 		public:
@@ -102,10 +112,10 @@ namespace utility{
 		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
 			for (int i = 0; i < vec1.cols; ++i)
 			{
-				sum += (vec1.at<float>(0,i) - vec2.at<float>(0,i)) * (vec1.at<float>(0,i) - vec2.at<float>(0,i)) ;			
-			}	
+				sum += (vec1.at<float>(0,i) - vec2.at<float>(0,i)) * (vec1.at<float>(0,i) - vec2.at<float>(0,i)) ;
+			}
 		}
-		return (sum);		
+		return (sum);
 	}
 
 	float ManhattanDistance(const Mat & vec1,const Mat &vec2){
@@ -113,10 +123,10 @@ namespace utility{
 		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
 			for (int i = 0; i < vec1.cols; ++i)
 			{
-				sum += abs((vec1.at<float>(0,i) - vec2.at<float>(0,i)));			
-			}	
+				sum += abs((vec1.at<float>(0,i) - vec2.at<float>(0,i)));
+			}
 		}
-		return (sum);	
+		return (sum);
 	}
 
 	float HammingDistance(const Mat & vec1,const Mat &vec2){
@@ -124,18 +134,18 @@ namespace utility{
 		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
 			for (int i = 0; i < vec1.cols; ++i)
 			{
-				sum += vec1.at<float>(0,i) == vec2.at<float>(0,i) ? 0 : 1;			
-			}	
+				sum += vec1.at<float>(0,i) == vec2.at<float>(0,i) ? 0 : 1;
+			}
 		}
-		return (sum);	
+		return (sum);
 	}
 
 	float CosineDistance(const Mat & vec1,const Mat &vec2){
 		float sum = 0;
 		if(vec1.cols == vec2.cols && vec1.rows == vec2.rows && vec1.rows == 1){
-			sum = vec1.dot(vec2) / (norm(vec1) * norm(vec2));	
+			sum = vec1.dot(vec2) / (norm(vec1) * norm(vec2));
 		}
-		return (sum);	
+		return (sum);
 	}
 
 	float TransformLabels(int i){
@@ -177,7 +187,7 @@ int main(int argc, char const *argv[])
         cout <<  "Could not open or find the image" << std::endl ;
         return -1;
     }
- 
+
     cout << "Rows: " << image.rows << endl;
     cout << "Cols: " << image.cols << endl;
 
@@ -196,7 +206,7 @@ int main(int argc, char const *argv[])
     }
 
 //    namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-//    imshow( "Display window", roi );       
+//    imshow( "Display window", roi );
 
 	waitKey(0);
 	return 0;

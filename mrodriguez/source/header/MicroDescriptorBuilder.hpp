@@ -2,9 +2,20 @@
 #include <string>
 #include "opencv2/opencv.hpp"
 #include "RaysExtractor.hpp"
+#include "utility.hpp"
 
 using namespace std;
 using namespace cv;
+using namespace utility;
+
+/*
+	typedef pair<int,int> pixel; // first -> es la coordenada X,  second -> es la coordenada Y
+	typedef pair<pair<int,int>,int> voxel; // first -> pixel (con first -> X, second -> Y) ; second -> coordenada T
+	typedef pair<float,float> RaySupport; //Rayo de soporte, unidad minima de un rayo de flujo (ray flux)
+	typedef vector<RaySupport> RayFlux; //Rayo de flujo
+	typedef vector<RayFlux> ListRaysFlux; // vector de rayos de flujo
+*/
+
 
 template<typename T>
 class MicroDescriptorBuilder
@@ -60,14 +71,15 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int Siz
 		VideoCapture Video;
 		Video.open(VideoPath);
 		cout << "Extrayendo rayos del video " << VideoPath << endl;
-		vector<vector<pair<float,float>>> Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize,SizeNorm));
-			
-		int ROI = 1;	
-		for (std::vector<vector<pair<float,float>>>::iterator i = Rays.begin(); i != Rays.end(); ++i)
+
+		ListRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize,SizeNorm));
+
+		int ROI = 1;
+		for (ListRaysFlux::iterator i = Rays.begin(); i != Rays.end(); ++i)
 		{
 			outFile_ << descount++ << " " << VideoId << " " << ROI;
 
-			for (std::vector<pair<float,float>>::iterator j = i->begin(); j != i->end(); ++j)
+			for (RayFlux::iterator j = i->begin(); j != i->end(); ++j)
 			{
 				outFile_ << " " << j->first << " " << j->second;
 			}
