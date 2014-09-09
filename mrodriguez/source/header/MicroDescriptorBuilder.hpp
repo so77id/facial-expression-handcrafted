@@ -26,16 +26,23 @@ class MicroDescriptorBuilder
 		RaysExtractor<T> RaysExtractor_;
 		size_t SizeRaysUniverse_;
 	public:
-		MicroDescriptorBuilder(string&,string&);
+		MicroDescriptorBuilder(const string&, const string&);
+		MicroDescriptorBuilder();
 		~MicroDescriptorBuilder();
 		bool isGood();
-		bool Build(const int,const int);
+		bool Build(const int);
+		bool NormalizeMicroDescriptors(const string&, const string&, const int)
 };
 
 template<typename T>
-MicroDescriptorBuilder<T>::MicroDescriptorBuilder(string &inFile, string &outFile){
+MicroDescriptorBuilder<T>::MicroDescriptorBuilder(const string &inFile,const string &outFile){
 	inFile_ .open(inFile);
 	outFile_.open(outFile);
+	SizeRaysUniverse_ = 0;
+}
+
+template<typename T>
+MicroDescriptorBuilder<T>::MicroDescriptorBuilder(){
 	SizeRaysUniverse_ = 0;
 }
 
@@ -49,6 +56,95 @@ template<typename T>
 bool MicroDescriptorBuilder<T>::isGood(){
 	return(inFile_.good() && outFile_.good());
 }
+
+template<typename T>
+bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize){
+	if(! isGood() ) return (false);
+
+	string VideoPath;
+	string VideoClass;
+	int    VideoId;
+	int    nVideoFrames;
+
+	int descount = 1;
+	//outFile_ << 2*SizeNorm << endl;
+
+
+	while(!inFile_.eof()){
+
+		inFile_ >> VideoPath >> VideoId >>VideoClass >> nVideoFrames;
+
+
+		VideoCapture Video;
+		Video.open(VideoPath);
+		cout << "Extrayendo rayos del video " << VideoPath << endl;
+
+		ListRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize));
+
+		int ROI = 1;
+		for (ListRaysFlux::iterator i = Rays.begin(); i != Rays.end(); ++i)
+		{
+			outFile_ << descount++ << " " << VideoId << " " << ROI << " " << (nVideoFrames - 1)*2;
+
+			for (RayFlux::iterator j = i->begin(); j != i->end(); ++j)
+			{
+				outFile_ << " " << j->first << " " << j->second;
+			}
+
+			outFile_ << endl;
+		}
+
+		SizeRaysUniverse_ += Rays.size();
+
+		Video.release();
+	}
+
+	cout << "Rayos totales: " << SizeRaysUniverse_ << endl;
+	return (true);
+}
+
+template<typename T>
+bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,const string &outFile, const int SizeNorm){
+	inFile_ .open(inFile);
+	outFile_.open(outFile);
+
+	if(! isGood() ) return (false);
+
+	int Id, VideoId, ROI, RayFluxSize, HalfSize;
+	float dx,dy;
+
+	outFile_ << 2*SizeNorm << endl;
+
+	while(! inFile_.eof() ){
+		inFile_ >> Id >> VideoId >> ROI >> RayFluxSize;
+		RayFlux NewRay;
+		HalfSize = RayFluxSize / 2;
+		for (int i = 0; i < RayFluxSize; ++i){
+			inFile_ >> dx >> dy;
+			NewRay.push_back(std::make_pair(dx,dy));
+		}
+
+		NewRay =  std::move(RaysExtractor_.Normalize(NewRay, SizeNorm));
+
+		outFile_ << Id << " " << VideoId << " " << ROI;
+
+		for (RayFlux::iterator j = NewRay.begin(); j != NewRay.end(); ++j)
+		{
+			outFile_ << " " << j->first << " " << j->second;
+		}
+
+		outFile_ << endl;
+		SizeRaysUniverse_++;
+	}
+	cout << "Rayos totales: " << SizeRaysUniverse_ << endl;
+
+	return(true);
+}
+
+
+
+
+/* VERSION ANTIGUA DE BUILD
 
 template<typename T>
 bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int SizeNorm){
@@ -95,3 +191,6 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int Siz
 	cout << SizeRaysUniverse_ << endl;
 	return (true);
 }
+
+
+*/

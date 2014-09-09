@@ -28,7 +28,7 @@ class RaysExtractor
 		T SumMSE(const ROI&, const ROI&, const Mat&, const Mat &);
 		pixel ComputeFlow(const ROI &,const ROI &, const Mat &, Mat &,const int);
 	public:
-		ListRaysFlux Extract(VideoCapture &,const int, const int);
+		ListRaysFlux Extract(VideoCapture &,const int);
 		RayFlux Normalize(const RayFlux,const int);
 };
 
@@ -100,7 +100,7 @@ pixel RaysExtractor<T>::ComputeFlow( const ROI &SR ,const ROI &WS, const Mat &IS
 
 
 template<typename T>
-ListRaysFlux RaysExtractor<T>::Extract(VideoCapture &video,const int SupportRegionSize, const int SizeNorm){
+ListRaysFlux RaysExtractor<T>::Extract(VideoCapture &video,const int SupportRegionSize){
 
 	if(!video.isOpened()){
 		cout << "Video file error" << endl;
@@ -158,7 +158,10 @@ ListRaysFlux RaysExtractor<T>::Extract(VideoCapture &video,const int SupportRegi
 	}
 
 	for (std::map<pixel,RayFlux>::iterator i = RaysMap.begin(); i != RaysMap.end(); ++i){
-		RaysRoi.push_back( Normalize(i->second,SizeNorm) );
+		//Cuando se normaliza directo
+		//RaysRoi.push_back( Normalize(i->second,SizeNorm) );
+		//CUando se normalzia en otro proceso
+		RaysRoi.push_back( i->second );
 	}
 
 	return (RaysRoi);

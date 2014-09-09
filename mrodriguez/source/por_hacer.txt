@@ -1,8 +1,15 @@
 #------------------------------------------------
 cambiar el testing
-cambiar el extracctor de rayos //listo sin probar
-correr con toda la base de datos
+cambiar el extracctor de rayos (listo)
+correr con toda la base de datos  varios valores
 #------------------------------------------------
 probar normalizacion en preprocesamiento
 guardadar datos del accuracy
 #------------------------------------------------
+valores de:
+    RS --> 3, 5, 7
+    SizeNorm --> 50 - 80
+    cluster --> 1000 - 10000
+separar el proceso de normalizacion de la extraccion
+
+Serializar con boost

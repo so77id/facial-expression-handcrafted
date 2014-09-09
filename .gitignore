@@ -1,4 +1,4 @@
 mrodriguez/build/
 mrodriguez/data/videos/
-mrodriguez/data/video_list.txt
+mrodriguez/data/*.txt
 mrodriguez/testing/
