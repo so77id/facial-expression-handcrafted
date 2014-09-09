@@ -31,6 +31,7 @@ int main(int argc, char const *argv[])
 
 	cout << "Voy a cargar los descriptores" << endl;
 	kFold.loadDescriptors();
+
 	cout << "Comienzo con la kfold" << endl;
 	kFold.runKfoldCrossValidation();
 

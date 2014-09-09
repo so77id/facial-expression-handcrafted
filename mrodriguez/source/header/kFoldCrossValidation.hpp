@@ -143,21 +143,21 @@ bool kFoldCrossValidation::loadDescriptors(){
 		ifstream testFile( kFoldPath_ + test);
 
 		if(!trainFile.good() || !testFile.good()){
-			cout << "no abrio el archivo" << endl;
+			//cout << "no abrio el archivo" << endl;
 			return (false);
 		}
 
 		cout << "TrainFile: " << endl;
 		while(!trainFile.eof()){
 			trainFile >> path >> video_id >> class_ >> frames;
-			cout << "\t" << video_id << endl;
+			//cout << "\t" << video_id << endl;
 			kFoldInstance[i].first.push_back(video_id);
 		}
 
 		cout << "TestFile: " << endl;
 		while(!testFile.eof()){
 			testFile >> path >> video_id >> class_ >> frames;
-			cout << "\t" << video_id << endl;
+			//cout << "\t" << video_id << endl;
 			kFoldInstance[i].second.push_back(video_id);
 		}
 	}
@@ -168,8 +168,12 @@ bool kFoldCrossValidation::loadDescriptors(){
 
 void kFoldCrossValidation::runKfoldCrossValidation(){
 
+
+
+
 	for (int i = 0; i < kFolds_; ++i)
 	{
+		//cout << "Hola" << endl;
 		cout << "Validacion cruzada numero: " << i +1 << endl;
 
 		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32F);
@@ -193,10 +197,10 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 			row++;
 		}
 
-		/*for(int i=0; i<trainDataLabels.rows; i++)
-		    for(int j=0; j<trainDataLabels.cols; j++)
-        		printf("trainDataLabels(%d, %d) = %f \n", i, j, trainDataLabels.at<float>(i,j));
-		*/
+		//for(int i=0; i<trainDataLabels.rows; i++)
+		//    for(int j=0; j<trainDataLabels.cols; j++)
+        		//	printf("trainDataLabels(%d, %d) = %f \n", i, j, trainDataLabels.at<float>(i,j));
+
 
 		cout << "\t entrenando" << endl;
 		CvSVM SVM_;
@@ -231,6 +235,8 @@ void kFoldCrossValidation::runKfoldCrossValidation(){
 		Accuracy_[i] = (HitCounter * 1.0) / (testData.rows * 1.0);
 
 		cout << "\t Accuracy: " << Accuracy_[i] << endl;
+
+		//cout << "Hola" << endl;
 	}
 
 }

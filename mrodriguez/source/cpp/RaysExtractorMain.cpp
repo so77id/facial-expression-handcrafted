@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
 	video.open(argv[1]);
 
 	RaysExtractor<uchar> Extractor;
-	vector<vector<pair<float,float>>> RaysRoi = Extractor.Extract(video,atoi(argv[2]),atoi(argv[3]));
+	vector<vector<pair<float,float>>> RaysRoi = Extractor.Extract(video,atoi(argv[2]));
 
 	int count = 0;
 	for (std::vector<vector<pair<float,float>>>::iterator i = RaysRoi.begin(); i != RaysRoi.end(); ++i)

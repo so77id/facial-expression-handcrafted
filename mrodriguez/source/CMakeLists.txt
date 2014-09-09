@@ -10,6 +10,9 @@ target_link_libraries(RaysExtractorMain ${OpenCV_LIBS})
 add_executable(MicroDescriptorBuilderMain "cpp/MicroDescriptorBuilderMain")
 target_link_libraries(MicroDescriptorBuilderMain ${OpenCV_LIBS})
 
+add_executable(MicroDescriptorNormalizeMain "cpp/MicroDescriptorNormalizeMain")
+target_link_libraries(MicroDescriptorNormalizeMain ${OpenCV_LIBS})
+
 add_executable(BoWBuilderMain "cpp/BoWBuilderMain")
 target_link_libraries(BoWBuilderMain ${OpenCV_LIBS})
 

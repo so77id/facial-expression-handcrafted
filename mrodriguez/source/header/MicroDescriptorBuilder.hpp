@@ -31,7 +31,7 @@ class MicroDescriptorBuilder
 		~MicroDescriptorBuilder();
 		bool isGood();
 		bool Build(const int);
-		bool NormalizeMicroDescriptors(const string&, const string&, const int)
+		bool NormalizeMicroDescriptors(const string&, const string&, const int);
 };
 
 template<typename T>
@@ -69,8 +69,10 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize){
 	int descount = 1;
 	//outFile_ << 2*SizeNorm << endl;
 
+	int cont = 0;
 
 	while(!inFile_.eof()){
+		if(++cont == 15) break;
 
 		inFile_ >> VideoPath >> VideoId >>VideoClass >> nVideoFrames;
 
@@ -113,13 +115,15 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 	int Id, VideoId, ROI, RayFluxSize, HalfSize;
 	float dx,dy;
 
-	outFile_ << 2*SizeNorm << endl;
+	outFile_ << SizeNorm << endl;
+
 
 	while(! inFile_.eof() ){
 		inFile_ >> Id >> VideoId >> ROI >> RayFluxSize;
+		cout << "Normalizando el rayo: " << Id << endl;
 		RayFlux NewRay;
 		HalfSize = RayFluxSize / 2;
-		for (int i = 0; i < RayFluxSize; ++i){
+		for (int i = 0; i < HalfSize; ++i){
 			inFile_ >> dx >> dy;
 			NewRay.push_back(std::make_pair(dx,dy));
 		}
