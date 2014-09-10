@@ -119,7 +119,7 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 
 	while(! inFile_.eof() ){
 		inFile_ >> Id >> VideoId >> ROI >> RayFluxSize;
-		cout << "Normalizando el rayo: " << Id << endl;
+		//cout << "Normalizando el rayo: " << Id << endl;
 		RayFlux NewRay;
 		HalfSize = RayFluxSize / 2;
 		for (int i = 0; i < HalfSize; ++i){
