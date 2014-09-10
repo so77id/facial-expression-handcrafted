@@ -11,31 +11,34 @@ using namespace std;
 
 int main(int argc, char const *argv[])
 {
-	if(argc < 4) {
-			cout << "Error en los argumentos" << endl;
-			cout << "./programa <Macrodescriptores> <video_list> <path kfold>" << endl;
-			return (-1);
-	}
+    if(argc < 4) {
+            cout << "Error en los argumentos" << endl;
+            cout << "./programa <Macrodescriptores> <video_list> <path kfold>" << endl;
+            return (-1);
+    }
 
-	string macrodescriptores(argv[1]);
-	string video_list(argv[2]);
-	string path_kfold(argv[3]);
+    string macrodescriptores(argv[1]);
+    string video_list(argv[2]);
+    string path_kfold(argv[3]);
 
-	CvSVMParams params;
-     	params.svm_type    = CvSVM::C_SVC;
-    	params.kernel_type = CvSVM::RBF;
-    	params.gamma = 20; //2^-x ---> x elevado
-    	params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
+    CvSVMParams params;
+        params.svm_type    = CvSVM::C_SVC;
+        params.kernel_type = CvSVM::RBF;
+        params.gamma = 20; //2^-x ---> x elevado
+        params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
 
-	kFoldCrossValidation kFold(macrodescriptores, path_kfold, video_list, params);
+    kFoldCrossValidation kFold(macrodescriptores, path_kfold, video_list, params);
 
-	cout << "Voy a cargar los descriptores" << endl;
-	kFold.loadDescriptors();
+    cout << "Voy a cargar los descriptores" << endl;
+    if( false == kFold.loadDescriptors()){
+        cout << "Error al cargar los descriptores" << endl;
+        return(-2);
+    }
 
-	cout << "Comienzo con la kfold" << endl;
-	kFold.runKfoldCrossValidation();
+    cout << "Comienzo con la kfold" << endl;
+    cout << "Accuracy: " <<  kFold.runKfoldCrossValidation() << endl;
 
-	cout << "Accuracy: " << kFold.GetAccuracy();
 
-	return 0;
+
+    return 0;
 }

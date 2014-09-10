@@ -18,6 +18,17 @@ namespace utility{
 	typedef vector<RaySupport> RayFlux; //Rayo de flujo
 	typedef vector<RayFlux> ListRaysFlux; // vector de rayos de flujo
 
+	typedef vector<int> Macrodescriptor; // Macrodescriptor
+	typedef vector<Macrodescriptor> ListMacrodescriptors; //Vector de macrodescriptores;
+	typedef vector<int> ListLabels; //Lista de labels de los macrodescriptores
+	typedef ListMacrodescriptors::iterator ListMacrodescriptorIter; //iterador pa la lista de macrodescriptores
+ 	typedef  ListLabels::iterator ListLabelIter; //iterador para la lista de labels
+    	typedef vector<int> Set; //vector con los indices de los videos incluidos en un cierto set
+    	typedef pair<Set,Set> DataSet; //first son los datos de entrenamiento y second los datos de pruebas
+    	typedef map<int,DataSet> MapDataSet; // key es el numero de la prueba del k-fold y el value es el dataset de la prueba
+    	typedef MapDataSet::iterator MapDataSetIter; //Iterador del map de datasets;
+
+
 
 	class ROI
 	{

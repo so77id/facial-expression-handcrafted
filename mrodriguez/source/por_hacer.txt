@@ -13,3 +13,5 @@ valores de:
 separar el proceso de normalizacion de la extraccion
 
 Serializar con boost
+
+The function is parallelized with the TBB library.

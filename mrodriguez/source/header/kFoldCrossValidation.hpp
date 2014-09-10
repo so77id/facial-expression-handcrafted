@@ -10,246 +10,270 @@
 
 using namespace std;
 using namespace cv;
+using namespace utility;
+
+
+    //typedef vector<int> Macrodescriptor; // Macrodescriptor
+    //typedef vector<Macrodescriptor> ListMacrodescriptors; //Vector de macrodescriptores;
+    //typedef vector<int> ListLabels; //Lista de labels de los macrodescriptores
+    //typedef ListMacrodescriptors::iterator ListMacrodescriptorIter;
+    //typedef  ListLabels::iterator ListLabelIter;
+    //typedef vector<int> Set; //vector con los indices de los videos incluidos en un cierto set
+    //typedef pair<Set,Set> DataSet; //first son los datos de entrenamiento y second los datos de pruebas
+    //typedef map<int,DataSet> MapDataSet; // key es el numero de la prueba del k-fold y el value es el dataset de la prueba
+    //typedef MapDataSet::iterator MapDataSetIter; //Iterador del map de datasets;
+
 
 
 class kFoldCrossValidation
 {
-	private:
-		ifstream kFoldConfigFile_; //Archivo con los datos con las rutas a cada una de las instancias de prueba
-		ifstream MacroDescriptorFile_; //Archivo con los macrodescriptores
-		ifstream LabelsFile_;
-		string kFoldPath_;
-		//Mat MacroDescriptors_; //Mat con los descriptores
-		map<int,vector<int>> MacroDescriptors_; // Mapa con los macrodescriptores
-		map<int,int> MacroDescriptorsLabels_;
-		//Mat MacroDescriptorsLabels_; //Mat con las etiquetas de los descriptores
-		int nClusters_;	//tamaño de los descriptores
-		int kFolds_; //cantidad de kfolds
-		map<int,pair<vector<int>,vector<int>>> kFoldInstance; //mapa indexado por numero de ejmeplo de kfold y tiene un
-												        // par de vectores con los datos de entrenamiento y los de test
-		CvSVMParams Params_; // Parametros del SVM
+    private:
+        ifstream kFoldConfigFile_; //Archivo con los datos con las rutas a cada una de las instancias de prueba
+        ifstream MacroDescriptorFile_; //Archivo con los macrodescriptores
+        ifstream LabelsFile_;
+        string kFoldPath_;
+        int nClusters_; // Cantidad de clusters de la prueba
+        int kFolds_; //Cantidad de pruebas
 
-		vector<double> Accuracy_;    // vector de presiciones
+        CvSVMParams Params_; // Parametros del SVM
 
-	public:
-		kFoldCrossValidation(string, string, string, CvSVMParams);
-		//~kFoldCrossValidation();
-		bool loadDescriptors();
-		void buildConfusionMatrix();
-		void runKfoldCrossValidation();
-		double GetAccuracy();
+        Mat Data_, LabelData_;
+
+        vector<double> ListAccuracy_;
+
+        MapDataSet kFoldInstance;
+
+
+        double GetAccuracy();
+    public:
+        kFoldCrossValidation(string, string, string, CvSVMParams);
+        ~kFoldCrossValidation();
+        bool loadDescriptors();
+        void buildConfusionMatrix();
+        double runKfoldCrossValidation();
 };
 
+
 kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kFoldPath, string LabelsFile, CvSVMParams Params){
-	kFoldPath_ = kFoldPath;
-	kFoldConfigFile_.open(kFoldPath_ + "kFold_config.txt");
-	MacroDescriptorFile_.open(MacroDescriptorFile);
-	LabelsFile_.open(LabelsFile);
-	Params_ = Params;
+    kFoldPath_ = kFoldPath;
+    kFoldConfigFile_.open(kFoldPath_ + "kFold_config.txt");
+    MacroDescriptorFile_.open(MacroDescriptorFile);
+    LabelsFile_.open(LabelsFile);
+    Params_ = Params;
+
 }
 
-bool kFoldCrossValidation::loadDescriptors(){
 
-	if( !kFoldConfigFile_.good() || !MacroDescriptorFile_.good() || !LabelsFile_.good()){
-		cout << "Sali por aca" << endl;
-		return(false);
-	}
+kFoldCrossValidation::~kFoldCrossValidation(){
+    //delete(Data_);
+    //delete(LabelData_);
+    kFoldConfigFile_.close();
+    MacroDescriptorFile_.close();
+    LabelsFile_.close();
+}
 
-//-----------------------------------------Extraccion de macrodescriptores----------------------------------
-	cout << "\t Cargando macrodescriptores" << endl;
+bool kFoldCrossValidation::loadDescriptors()
+{
+        if( !kFoldConfigFile_.good() || !MacroDescriptorFile_.good() || !LabelsFile_.good()){
+                cout << "No pude abrir los archivos" << endl;
+                return(false);
+        }
 
-	MacroDescriptorFile_ >>	nClusters_;
-	cout << "\t\tClusters " << nClusters_ << endl;
-	//map<int,vector<int>> MacroDescriptors_;
-	int id, feature;
+//=====================================================================
+// Cargando los macrodescriptores
 
-	while(!MacroDescriptorFile_.eof()){
-		MacroDescriptorFile_ >> id;
-		//cout << "id: " << id;
-		for (int i = 0; i < nClusters_; ++i)
-		{
-			//cout << " " << feature;
-			MacroDescriptorFile_ >> feature;
+        int id, feature;
+        ListMacrodescriptors TotalMacrodescriptors;
 
-			MacroDescriptors_[id].push_back(feature);
-		}
-		//cout << endl;
-	}
+        MacroDescriptorFile_ >> nClusters_;
 
+        while(! MacroDescriptorFile_.eof()){
 
-	/*MacroDescriptors_ =  Mat(MacrodescriptorsMap.size(), nClusters_, CV_32FC2);
+            MacroDescriptorFile_ >> id;
 
-	i = 0;
-	for (std::map<int,vector<int>>::iterator it_map = MacrodescriptorsMap.begin(); it_map != MacrodescriptorsMap.end(); ++it_map)
-	{
-		j = 0;
-		for (std::vector<int>::iterator it_vector = it_map->second.begin(); it_vector != it_map->second.end(); ++it_vector)
-		{
-			MacroDescriptors_.at<float>(i,j) = *it_vector;
-			j++;
-		}
-		i++;
-	}*/
+            Macrodescriptor newMacrodescriptor;
 
-//--------------------------------------------Extraccion de labels del archivo-----------------------------------------
+            for (int i = 0; i < nClusters_; ++i){
 
-	cout << "\t Cargando labels" << endl;
+                MacroDescriptorFile_ >> feature;
+                newMacrodescriptor.push_back(feature);
+            }
 
-	int index, class_, frames;
-	string buffer;
-	//map<int,int> MacroDescriptorsLabels_;
+            TotalMacrodescriptors.push_back(std::move(newMacrodescriptor));
+        }
 
-	while(!LabelsFile_.eof()){
-		LabelsFile_ >> buffer >> index >> class_ >> frames;
-		//cout << buffer << " " << index << " " << class_ << " " << frames << endl;
-		MacroDescriptorsLabels_[index] = class_;
-		//cout << MacroDescriptorsLabels_[index] << endl;
-	}
+//=====================================================================
+// Cargando los labels
 
+        int index, class_, frames;
+        string buffer;
 
-/*	MacroDescriptorsLabels_ = Mat(MacrodescriptorsLabelsMap.size(), 1, CV_32FC2);
+        ListLabels TotalLabels;
 
-	int i = 0;
-	for (std::map<int,int>::iterator it = MacrodescriptorsLabelsMap.begin(); it != MacrodescriptorsLabelsMap.end(); ++it)
-	{
-		for (int j = 0; j < 1; ++j)
-		{
-			MacroDescriptorsLabels_.at<float>(i,j) = it->second;
-		}
-		i++;
-	}
+        while(!LabelsFile_.eof()){
+            LabelsFile_ >> buffer >> index >> class_ >> frames;
+            TotalLabels.push_back(class_);
+        }
+
+//=====================================================================
+// Se verifica que exista la misma cantidad de labels como de microdescriptores
+
+        if(TotalLabels.size() != TotalMacrodescriptors.size()){
+            cout << "La cantidad de descriptores no concuerda con la cantidad de etiquetas" << endl;
+            return (false);
+        }
+
+//=====================================================================
+//Cargando los datos del k-fold
+
+        string train, test;
+        string path;
+        int video_id;
+
+        kFoldConfigFile_ >> kFolds_;
+
+        //cout << kFolds_ << endl;
+
+        for (int i = 0; i < kFolds_; ++i)
+        {
+            kFoldConfigFile_ >> id >> train >> test;
+            //cout << id << " " << train << " " << test << endl;
+
+            ifstream trainFile( kFoldPath_ + train);
+            ifstream testFile( kFoldPath_ + test);
+
+            if(!trainFile.good() || !testFile.good()){
+                cout << "error en la lectura de un archivo del k-fold" << endl;
+                return (false);
+            }
+
+            //cout << "TrainFile: " << endl;
+            while(!trainFile.eof()){
+                trainFile >> path >> video_id >> class_ >> frames;
+                //cout << "\t" << video_id << endl;
+                kFoldInstance[i].first.push_back(video_id - 1);
+            }
+
+            //cout << "TestFile: " << endl;
+            while(!testFile.eof()){
+                testFile >> path >> video_id >> class_ >> frames;
+                //cout << "\t" << video_id << endl;
+                kFoldInstance[i].second.push_back(video_id - 1);
+            }
+
+            if( ( kFoldInstance[i].second.size() + kFoldInstance[i].first.size() ) != TotalMacrodescriptors.size() ){
+                cout << "El k-fold " << i+1<< "tiene erroes ya que la suma de train + test != size microdescriptores" << endl;
+                return(false);
+            }
+
+        }
+
+/* codigo para probar que los k-fold cargaron bien
+        for (MapDataSetIter Map_it = kFoldInstance.begin(); Map_it != kFoldInstance.end(); ++Map_it)
+        {
+            cout << "DataSet :" << Map_it->first << endl;
+
+            cout << "Train" << endl;
+            for (Set::iterator Set_it = Map_it->second.first.begin(); Set_it != Map_it->second.first.end(); ++Set_it)
+            {
+                cout << *Set_it << " ";
+            }
+            cout << endl << "Test" << endl;
+
+            for (Set::iterator Set_it = Map_it->second.second.begin(); Set_it != Map_it->second.second.end(); ++Set_it)
+            {
+                cout << *Set_it << " ";
+            }
+            cout << endl;
+        }
 */
-//-------------------------------------------Carga de los datos de prueba----------------------------------------------
+//=====================================================================
+// Se transpasan a Mat los datos de los descriptores y los labels
 
-	cout << "\t Cargando kfolds" << endl;
+        Mat AuxData_( TotalMacrodescriptors.size(),nClusters_,CV_32F);
+        Mat AuxLabelData_( TotalLabels.size(),1,CV_32F);
 
+        AuxData_.copyTo(Data_);
+        AuxLabelData_.copyTo(LabelData_);
 
-	string train, test;
-	string path;
-	int video_id;
+        int row = 0,col;
+        ListLabelIter Label_it = TotalLabels.begin();
+        for (ListMacrodescriptorIter Macro_it = TotalMacrodescriptors.begin();
+              Macro_it != TotalMacrodescriptors.end() && Label_it != TotalLabels.end();
+              ++Macro_it)
+        {
+                col = 0;
+                LabelData_.at<float>(row,col) = *Label_it;
+                for (Macrodescriptor::iterator feature_it = Macro_it->begin(); feature_it != Macro_it->end(); ++feature_it)
+                {
+                    Data_.at<float>(row,col) = *feature_it;
+                    col++;
+                }
+                row++;
+                 ++Label_it;
+        }
 
-	kFoldConfigFile_ >> kFolds_;
-
-	cout << kFolds_ << endl;
-
-	Accuracy_ = vector<double>(kFolds_,0.0);
-
-	for (int i = 0; i < kFolds_; ++i)
-	{
-		kFoldConfigFile_ >> id >> train >> test;
-		cout << id << " " << train << " " << test << endl;
-
-		ifstream trainFile( kFoldPath_ + train);
-		ifstream testFile( kFoldPath_ + test);
-
-		if(!trainFile.good() || !testFile.good()){
-			//cout << "no abrio el archivo" << endl;
-			return (false);
-		}
-
-		cout << "TrainFile: " << endl;
-		while(!trainFile.eof()){
-			trainFile >> path >> video_id >> class_ >> frames;
-			//cout << "\t" << video_id << endl;
-			kFoldInstance[i].first.push_back(video_id);
-		}
-
-		cout << "TestFile: " << endl;
-		while(!testFile.eof()){
-			testFile >> path >> video_id >> class_ >> frames;
-			//cout << "\t" << video_id << endl;
-			kFoldInstance[i].second.push_back(video_id);
-		}
-	}
-
-	return (true);
-}
+        //cout << LabelData_ << endl << endl;
+        //cout << Data_ << endl << endl;
 
 
-void kFoldCrossValidation::runKfoldCrossValidation(){
-
-
-
-
-	for (int i = 0; i < kFolds_; ++i)
-	{
-		//cout << "Hola" << endl;
-		cout << "Validacion cruzada numero: " << i +1 << endl;
-
-		Mat trainData(kFoldInstance[i].first.size(),nClusters_,CV_32F);
-		Mat trainDataLabels(kFoldInstance[i].first.size(),1,CV_32F);
-		Mat testData(kFoldInstance[i].second.size(),nClusters_,CV_32F);
-		Mat testDataLabels(kFoldInstance[i].second.size(),1,CV_32F);
-
-
-		int row = 0, col;
-		for (std::vector<int>::iterator it = kFoldInstance[i].first.begin(); it != kFoldInstance[i].first.end(); ++it)
-		{
-			col = 0;
-			//cout << "Label: "<< MacroDescriptorsLabels_[*it] << endl;
-			trainDataLabels.at<float>(row,0) = MacroDescriptorsLabels_[*it];
-
-			for (std::vector<int>::iterator it_descriptors = MacroDescriptors_[*it].begin(); it_descriptors != MacroDescriptors_[*it].end(); ++it_descriptors)
-			{
-				trainData.at<float>(row,col) = *it_descriptors;
-				col++;
-			}
-			row++;
-		}
-
-		//for(int i=0; i<trainDataLabels.rows; i++)
-		//    for(int j=0; j<trainDataLabels.cols; j++)
-        		//	printf("trainDataLabels(%d, %d) = %f \n", i, j, trainDataLabels.at<float>(i,j));
-
-
-		cout << "\t entrenando" << endl;
-		CvSVM SVM_;
-		SVM_.train(trainData, trainDataLabels, Mat(), Mat(), Params_);
-
-		cout << "\t cargando datos de train" << endl;
-		row = 0;
-		for (std::vector<int>::iterator it = kFoldInstance[i].second.begin(); it != kFoldInstance[i].second.end(); ++it)
-		{
-			col = 0;
-			testDataLabels.at<float>(row,0) = MacroDescriptorsLabels_[*it];
-
-			for (std::vector<int>::iterator it_descriptors = MacroDescriptors_[*it].begin(); it_descriptors != MacroDescriptors_[*it].end(); ++it_descriptors)
-			{
-				testData.at<float>(row,col) = *it_descriptors;
-				col++;
-			}
-			row++;
-		}
-
-
-
-		cout << "\t prediciendo" << endl;
-		int HitCounter = 0;
-		for (int r = 0; r < testData.rows; ++r)
-		{
-			if( testDataLabels.at<float>(r,0) ==  SVM_.predict(testData.row(r))){
-				HitCounter++;
-			}
-		}
-
-		Accuracy_[i] = (HitCounter * 1.0) / (testData.rows * 1.0);
-
-		cout << "\t Accuracy: " << Accuracy_[i] << endl;
-
-		//cout << "Hola" << endl;
-	}
+        return(true);
 
 }
 
 
 double kFoldCrossValidation::GetAccuracy(){
 
-	double accuracy = 0.0;
+    double accuracy = 0.0;
+    for (vector<double>::iterator it = ListAccuracy_.begin(); it != ListAccuracy_.end(); ++it)
+    {
+        accuracy += *it;
+    }
 
-	for (std::vector<double>::iterator it = Accuracy_.begin(); it != Accuracy_.end(); ++it)
-	{
-		accuracy += *it;
-	}
+    return( accuracy / (1.0 * ListAccuracy_.size()) );
+}
 
-	return (accuracy / (Accuracy_.size()*1.0));
+double kFoldCrossValidation::runKfoldCrossValidation(){
+
+    int row = 0;
+
+    for (int k = 0; k < kFolds_; ++k)
+    {
+        Mat TrainSet(kFoldInstance[k].first.size(),nClusters_,CV_32F);
+        Mat TrainLabelSet(kFoldInstance[k].first.size(),1,CV_32F);
+        Mat TestSet(kFoldInstance[k].second.size(),nClusters_,CV_32F);
+        Mat TestLabelSet(kFoldInstance[k].second.size(),1,CV_32F);
+        Mat PredictLabelSet(kFoldInstance[k].second.size(),1,CV_32F);
+
+        row = 0;
+        for (Set::iterator Set_it = kFoldInstance[k].first.begin(); Set_it != kFoldInstance[k].first.end(); ++Set_it)
+        {
+            Data_.row(*Set_it).copyTo(TrainSet.row(row));
+            LabelData_.row(*Set_it).copyTo(TrainLabelSet.row(row));
+            row++;
+        }
+
+        row = 0;
+        for (Set::iterator Set_it = kFoldInstance[k].second.begin(); Set_it != kFoldInstance[k].second.end(); ++Set_it)
+        {
+            Data_.row(*Set_it).copyTo(TestSet.row(row));
+            LabelData_.row(*Set_it).copyTo(TestLabelSet.row(row));
+            row++;
+        }
+
+        CvSVM SVM_;
+        SVM_.train(TrainSet, TrainLabelSet, Mat(), Mat(), Params_);
+
+        SVM_.predict(TestSet,PredictLabelSet);
+
+        PredictLabelSet = (PredictLabelSet == TestLabelSet) / 255;
+
+        //Revisar el uso de la funcion SUM de opencv
+        double accuracy = mean(PredictLabelSet.col(0))[0];
+        ListAccuracy_.push_back(accuracy);
+        //cout << accuracy << endl;
+    }
+
+    return(GetAccuracy());
+
 }

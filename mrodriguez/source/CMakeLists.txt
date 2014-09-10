@@ -24,6 +24,3 @@ target_link_libraries(kFoldCreatorFiles ${OpenCV_LIBS})
 
 add_executable(TestFileCreator "cpp/TestFileCreator")
 target_link_libraries(TestFileCreator ${OpenCV_LIBS})
-
-
-

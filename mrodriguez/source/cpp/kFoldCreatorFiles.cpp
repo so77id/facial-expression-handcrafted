@@ -37,10 +37,10 @@ istream& operator>>(istream& is ,  Video &MyVideo)
 
 ostream& operator<<(ostream& os , Video &MyVideo)
 {
-	os << MyVideo.VideoPath_    << " ";
+	os << endl << MyVideo.VideoPath_    << " ";
 	os << MyVideo.VideoId_      << " ";
 	os << MyVideo.VideoClass_   << " ";
-	os << MyVideo.VideoCFrames_ << endl;
+	os << MyVideo.VideoCFrames_;
 
     return os;
 }

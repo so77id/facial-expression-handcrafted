@@ -68,7 +68,7 @@ bool BoWBuilder::LoadDescriptors(){
 	while(! inFile_.eof()){
 		getline(inFile_,buffer);
 
-		
+
 		std::vector<string> Vbuffer = utility::split(buffer," ");
 		if(Vbuffer.size() < size_t(SizeOfVector_ + 3)) break;
 
@@ -122,8 +122,8 @@ int BoWBuilder::GetSizeDescriptors(){
 
 
 bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001)){
-	
-    cout << "Creando BOW" << endl;  
+
+    cout << "Creando BOW" << endl;
     BOWKMeansTrainer bowTrainer(NumberOfClusters_, tc, retries,flags);
 	bowTrainer.add(MicroDescriptors_);
 
@@ -131,9 +131,9 @@ bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, Ter
 //	{
 	//	bowTrainer.add(MicroDescriptors_.row(i));
 //	}
-	
+
 	cout << "Extrayendo clusters" << endl;
-	Clusters_ = bowTrainer.cluster(); 
+	Clusters_ = bowTrainer.cluster();
 
 
 	cout << "----------------" << endl;
@@ -156,7 +156,7 @@ bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, Ter
 	int j= 0;
 	for (vector<DMatch>::iterator it = matches.begin(); it != matches.end(); ++it)
 	{
-		int id = matches[j].trainIdx; 
+		int id = matches[j].trainIdx;
 
 		ClusterRays_[id].push_back(j);
 
@@ -170,12 +170,12 @@ bool BoWBuilder::BuildMacroDescriptors(){
 
 	pair<int,int> RayRoi;
 	vector<int> Rays;
-	
-	outFile_ << Clusters_.rows << endl; // largo de los macro
+
+	outFile_ << Clusters_.rows; // largo de los macro
 
 	cout << "construyendo macro" << endl;
 
-	
+
 
 
 	for (std::map<int,vector<int>>::iterator video = VideoRoi_.begin(); video != VideoRoi_.end(); ++video)
@@ -195,7 +195,7 @@ bool BoWBuilder::BuildMacroDescriptors(){
 
 			for(std::map<int,vector<int>>::iterator cluster = ClusterRays_.begin(); cluster != ClusterRays_.end() ; ++cluster)
 			{
-				
+
 				for (std::vector<int>::iterator ray = cluster->second.begin(); ray != cluster->second.end(); ++ray)
 				{
 					if(std::binary_search(Rays.begin(),Rays.end(),*ray)){
@@ -211,12 +211,12 @@ bool BoWBuilder::BuildMacroDescriptors(){
 			}
 		}
 
-		outFile_ << video->first;
+		outFile_ << endl << video->first;
 		for (std::vector<int>::iterator it = MacroDescriptor.begin(); it != MacroDescriptor.end(); ++it)
 		{
 				outFile_ << " " << *it;
 		}
-		outFile_ << endl;
+
 	}
 
 	return(true);
