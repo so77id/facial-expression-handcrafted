@@ -119,6 +119,7 @@ bool kFoldCrossValidation::loadDescriptors()
 // Se verifica que exista la misma cantidad de labels como de microdescriptores
 
         if(TotalLabels.size() != TotalMacrodescriptors.size()){
+            cout << "Labels: " << TotalLabels.size() << endl << "Macrodescriptores: " << TotalMacrodescriptors.size() << endl;
             cout << "La cantidad de descriptores no concuerda con la cantidad de etiquetas" << endl;
             return (false);
         }
