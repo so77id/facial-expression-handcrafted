@@ -13,7 +13,6 @@
 /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/data/videos/rigid_test13.avi 13 5 50
 /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/data/videos/rigid_test14.avi 14 6 57
 /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/data/videos/rigid_test15.avi 15 6 60
-/home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/data/videos/rigid_test16.avi 16 1 73
 /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/data/videos/rigid_test17.avi 17 1 61
 /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/data/videos/rigid_test18.avi 18 2 48
 /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/data/videos/rigid_test19.avi 19 3 64

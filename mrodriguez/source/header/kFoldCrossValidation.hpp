@@ -87,11 +87,14 @@ bool kFoldCrossValidation::loadDescriptors()
 
         MacroDescriptorFile_ >> nClusters_;
 
+	cout << "Cargando macrodescriptores" << endl;
+
         while(! MacroDescriptorFile_.eof()){
 
             MacroDescriptorFile_ >> id;
 
             Macrodescriptor newMacrodescriptor;
+	    cout << "Video: " << id << endl;
 
             for (int i = 0; i < nClusters_; ++i){
 
@@ -108,11 +111,14 @@ bool kFoldCrossValidation::loadDescriptors()
         int index, class_, frames;
         string buffer;
 
+	cout << "Cargando labels" << endl;
+
         ListLabels TotalLabels;
 
         while(!LabelsFile_.eof()){
             LabelsFile_ >> buffer >> index >> class_ >> frames;
-            TotalLabels.push_back(class_);
+            cout << "Video: " << index << endl;
+	    TotalLabels.push_back(class_);
         }
 
 //=====================================================================
