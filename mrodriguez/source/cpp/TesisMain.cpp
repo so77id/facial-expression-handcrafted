@@ -27,7 +27,7 @@ bool MicroDescriptorBuilderRun(const string RSVideoList, const string RSPathOut,
 
          cout << "Comienza la extraccion de microdescriptores RSValue: " << RSsize << endl;
          MicroDescriptorBuilder<uchar> MyMicroDescriptorBuilder(RSVideoList,FileName);
-         if (MyMicroDescriptorBuilder.Build(RSsize))
+         if (MyMicroDescriptorBuilder.Build(RSsize,false))
          {
             ConfigFile  << endl << FileName <<  " " << *i;
          }
@@ -83,7 +83,7 @@ bool MicroDescriptorNormalize(const string &NPathNoNorm, const string &NPathNorm
 
             NormFIleName = NPathNorm + "microdescriptors_" + std::to_string(RSValue) + "_" + std::to_string(j) + ".txt";
             MicroDescriptorBuilder<uchar> MyMicroDescriptorBuilder;
-            if (MyMicroDescriptorBuilder.NormalizeMicroDescriptors(NoNormFileName, NormFIleName, j ) )
+            if (MyMicroDescriptorBuilder.NormalizeMicroDescriptors(NoNormFileName, NormFIleName, j, false ) )
             {
                 NormConfigFile  << endl << NormFIleName << " " << RSValue << " " << j;
             }

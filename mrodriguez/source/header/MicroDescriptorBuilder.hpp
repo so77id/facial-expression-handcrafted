@@ -30,8 +30,8 @@ class MicroDescriptorBuilder
 		MicroDescriptorBuilder();
 		~MicroDescriptorBuilder();
 		bool isGood();
-		bool Build(const int);
-		bool NormalizeMicroDescriptors(const string&, const string&, const int);
+		bool Build(const int,const bool);
+		bool NormalizeMicroDescriptors(const string&, const string&, const int,const bool);
 };
 
 template<typename T>
@@ -58,7 +58,7 @@ bool MicroDescriptorBuilder<T>::isGood(){
 }
 
 template<typename T>
-bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize){
+bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Debug){
 	if(! isGood() ) return (false);
 
 	string VideoPath;
@@ -67,7 +67,6 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize){
 	int    nVideoFrames;
 
 	int descount = 1;
-	//outFile_ << 2*SizeNorm << endl;
 
 
 	while(!inFile_.eof()){
@@ -78,7 +77,8 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize){
 
 		VideoCapture Video;
 		Video.open(VideoPath);
-		//cout << "Extrayendo rayos del video " << VideoPath << endl;
+		if(Debug)
+			cout << "Extrayendo rayos del video " << VideoPath << endl;
 
 		ListRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize));
 
@@ -100,12 +100,13 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize){
 		Video.release();
 	}
 
-	cout << "Rayos totales: " << SizeRaysUniverse_ << endl;
+	if(Debug)
+		cout << "Rayos totales: " << SizeRaysUniverse_ << endl;
 	return (true);
 }
 
 template<typename T>
-bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,const string &outFile, const int SizeNorm){
+bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,const string &outFile, const int SizeNorm, const bool Debug){
 	inFile_ .open(inFile);
 	outFile_.open(outFile);
 
@@ -117,9 +118,14 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 	outFile_ << SizeNorm << endl;
 
 
+	if(Debug)
+		outFile_ << 2*SizeNorm << endl;
+
+
 	while(! inFile_.eof() ){
 		inFile_ >> Id >> VideoId >> ROI >> RayFluxSize;
-		//cout << "Normalizando el rayo: " << Id << endl;
+		if(Debug)
+			cout << "Normalizando el rayo: " << Id << endl;
 		RayFlux NewRay;
 		HalfSize = RayFluxSize / 2;
 		for (int i = 0; i < HalfSize; ++i){
@@ -139,7 +145,8 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 		outFile_ << endl;
 		SizeRaysUniverse_++;
 	}
-	cout << "Rayos totales: " << SizeRaysUniverse_ << endl;
+	if(Debug)
+		cout << "Rayos totales: " << SizeRaysUniverse_ << endl;
 
 	return(true);
 }

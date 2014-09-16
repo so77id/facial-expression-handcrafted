@@ -15,7 +15,7 @@ int main(int argc, char const *argv[])
 	string out(argv[2]);
 
 	MicroDescriptorBuilder<uchar> MyMicroDescriptorBuilder(in,out);
-	MyMicroDescriptorBuilder.Build(atoi(argv[3]) );
+	MyMicroDescriptorBuilder.Build(atoi(argv[3]), true);
 	//MyMicroDescriptorBuilder.Build(atoi(argv[3]),atoi(argv[4]));
 
 
