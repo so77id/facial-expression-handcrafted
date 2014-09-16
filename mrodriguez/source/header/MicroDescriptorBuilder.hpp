@@ -78,7 +78,7 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize){
 
 		VideoCapture Video;
 		Video.open(VideoPath);
-		cout << "Extrayendo rayos del video " << VideoPath << endl;
+		//cout << "Extrayendo rayos del video " << VideoPath << endl;
 
 		ListRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize));
 

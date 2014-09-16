@@ -136,7 +136,7 @@ bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, Ter
 	Clusters_ = bowTrainer.cluster();
 
 
-	cout << "----------------" << endl;
+	/*cout << "----------------" << endl;
 	for (int i = 0; i < Clusters_.rows; ++i)
 	{
 		for (int j = 0; j < Clusters_.cols; ++j)
@@ -146,7 +146,7 @@ bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, Ter
 		cout << endl;
 	}
 	cout << "----------------" << endl;
-
+	*/
 	cv::Ptr<cv::DescriptorMatcher > matcher = new cv::BFMatcher(cv::NORM_L2);
 	matcher->add(std::vector<cv::Mat>(1, Clusters_));
 	// matches

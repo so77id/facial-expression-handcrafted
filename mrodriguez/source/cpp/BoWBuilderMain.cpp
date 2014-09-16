@@ -14,10 +14,6 @@ int main(int argc, char const *argv[])
 	string in(argv[1]);
 	string out(argv[2]);
 
-	int *frec = new int[atoi(argv[3])];
-	for(int ix = 0; ix < atoi(argv[3]); ix++){
-		frec[ix] = 0;
-	}
 
 	BoWBuilder MyBow(in,out,atoi(argv[3]));
 	MyBow.LoadDescriptors();
