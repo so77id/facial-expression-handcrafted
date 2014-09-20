@@ -150,21 +150,21 @@ bool kFoldCrossValidation::loadDescriptors()
             ifstream testFile( kFoldPath_ + test);
 
             if(!trainFile.good() || !testFile.good()){
-                cout << "error en la lectura de un archivo del k-fold" << endl;
+                //cout << "error en la lectura de un archivo del k-fold" << endl;
                 return (false);
             }
 
-            cout << "TrainFile: " << endl;
+           // cout << "TrainFile: " << endl;
             while(!trainFile.eof()){
                 trainFile >> path >> video_id >> class_ >> frames;
-                cout << "\t" << video_id << endl;
+                //cout << "\t" << video_id << endl;
                 kFoldInstance[i].first.push_back(video_id - 1);
             }
 
-            cout << "TestFile: " << endl;
+            //cout << "TestFile: " << endl;
             while(!testFile.eof()){
                 testFile >> path >> video_id >> class_ >> frames;
-                cout << "\t" << video_id << endl;
+                //cout << "\t" << video_id << endl;
                 kFoldInstance[i].second.push_back(video_id - 1);
             }
 
@@ -197,7 +197,7 @@ bool kFoldCrossValidation::loadDescriptors()
 //=====================================================================
 // Se transpasan a Mat los datos de los descriptores y los labels
 
-        cout << "Transformando" << endl;
+        cout << "Transformando a mat" << endl;
 
         Mat AuxData_( TotalMacrodescriptors.size(),nClusters_,CV_32F);
         Mat AuxLabelData_( TotalLabels.size(),1,CV_32F);
@@ -280,7 +280,7 @@ double kFoldCrossValidation::runKfoldCrossValidation(){
         //Revisar el uso de la funcion SUM de opencv
         double accuracy = mean(PredictLabelSet.col(0))[0];
         ListAccuracy_.push_back(accuracy);
-        //cout << accuracy << endl;
+        cout << accuracy << endl;
     }
 
     return(GetAccuracy());
