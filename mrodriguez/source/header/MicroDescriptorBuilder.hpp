@@ -117,11 +117,6 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 
 	outFile_ << SizeNorm << endl;
 
-
-	if(Debug)
-		outFile_ << 2*SizeNorm << endl;
-
-
 	while(! inFile_.eof() ){
 		inFile_ >> Id >> VideoId >> ROI >> RayFluxSize;
 		if(Debug)

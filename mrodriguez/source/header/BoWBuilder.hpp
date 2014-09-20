@@ -66,7 +66,6 @@ bool BoWBuilder::LoadDescriptors(){
 	cout << "Leyendo archivo" << endl;
 	int c = 0;
 	while(! inFile_.eof()){
-		cout << "leo" << endl;
 		getline(inFile_,buffer);
 
 
