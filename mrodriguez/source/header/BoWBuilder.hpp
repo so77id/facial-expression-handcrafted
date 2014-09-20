@@ -102,9 +102,12 @@ bool BoWBuilder::LoadDescriptors(){
 
 	cout << "creando matriz de descriptores" << endl;
 	Mat MatMicroDescriptors_(VectorMicroDescriptors_.size(), VectorMicroDescriptors_.at(0).size(), CV_32F);
-	for(int i=0; i<MatMicroDescriptors_.rows; ++i)
-     for(int j=0; j<MatMicroDescriptors_.cols; ++j)
-          MatMicroDescriptors_.at<float>(i, j) = VectorMicroDescriptors_.at(i).at(j);
+	for(int i=0; i<MatMicroDescriptors_.rows; ++i){
+		for(int j=0; j<MatMicroDescriptors_.cols; ++j)
+         			MatMicroDescriptors_.at<float>(i, j) = VectorMicroDescriptors_.at(i).at(j);
+
+         		cout << ".";
+	}
 
     MicroDescriptors_ = MatMicroDescriptors_;
 
