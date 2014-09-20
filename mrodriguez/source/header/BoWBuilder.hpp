@@ -77,8 +77,6 @@ bool BoWBuilder::LoadDescriptors(){
 		video_id = std::stoi(Vbuffer[1]);
 		roi      = std::stoi(Vbuffer[2]);
 
-		if (video_id == 16) continue;
-
 		pair<int,int> video_roi(video_id,roi);
 		map<pair<int,int>,vector<int>>::iterator it_vrr = VideoRoi_Rays_.find(video_roi);
 
