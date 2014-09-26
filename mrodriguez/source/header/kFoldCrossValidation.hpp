@@ -57,10 +57,9 @@ class kFoldCrossValidation
 kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kFoldPath, string LabelsFile, CvSVMParams Params){
     kFoldPath_ = kFoldPath;
     kFoldConfigFile_.open(kFoldPath_ + "kFold_config.txt");
-    MacroDescriptorFile_.open(MacroDescriptorFile);
+    MacroDescriptorFile_.open(MacroDescriptorFile,ios::in | ios::binary);
     LabelsFile_.open(LabelsFile);
     Params_ = Params;
-
 }
 
 
@@ -87,7 +86,7 @@ bool kFoldCrossValidation::loadDescriptors()
 
         MacroDescriptorFile_ >> nClusters_;
 
-	cout << "Cargando macrodescriptores" << endl;
+        cout << "Cargando macrodescriptores" << endl;
 
         while(! MacroDescriptorFile_.eof()){
 
@@ -146,8 +145,8 @@ bool kFoldCrossValidation::loadDescriptors()
             kFoldConfigFile_ >> id >> train >> test;
             cout << id << " " << train << " " << test << endl;
 
-            ifstream trainFile( kFoldPath_ + train);
-            ifstream testFile( kFoldPath_ + test);
+            ifstream trainFile( kFoldPath_ + train,ios::in | ios::binary);
+            ifstream testFile( kFoldPath_ + test,ios::in | ios::binary);
 
             if(!trainFile.good() || !testFile.good()){
                 //cout << "error en la lectura de un archivo del k-fold" << endl;
@@ -273,12 +272,22 @@ double kFoldCrossValidation::runKfoldCrossValidation(){
         CvSVM SVM_;
         SVM_.train(TrainSet, TrainLabelSet, Mat(), Mat(), Params_);
 
+        /*for (int i = 0; i < TestSet.rows; ++i)
+        {
+                cout << SVM_.predict(TrainSet.row(i),true) << " ";
+        }cout << endl << endl;
+*/
         SVM_.predict(TestSet,PredictLabelSet);
+
+        //cout << "matriz de predicciones"   << PredictLabelSet << endl << endl;
+        //cout << "matriz de labels originales" << TestLabelSet << endl << endl;
 
         PredictLabelSet = (PredictLabelSet == TestLabelSet) / 255;
 
         //Revisar el uso de la funcion SUM de opencv
+        //cout << "matriz de aciertos" << endl << PredictLabelSet;
         double accuracy = mean(PredictLabelSet.col(0))[0];
+        //cout << "Accuracy: " << accuracy << endl;
         ListAccuracy_.push_back(accuracy);
         cout << accuracy << endl;
     }

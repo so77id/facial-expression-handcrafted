@@ -34,8 +34,8 @@ class BoWBuilder
 };
 
 BoWBuilder::BoWBuilder(const string &inFile,const string &outFile, const size_t NumberOfClusters){
-	inFile_ .open(inFile);
-	outFile_.open(outFile);
+	inFile_ .open(inFile, ios::in | ios::binary);
+	outFile_.open(outFile, ios::out | ios::binary);
 	NumberOfClusters_ = NumberOfClusters;
 }
 

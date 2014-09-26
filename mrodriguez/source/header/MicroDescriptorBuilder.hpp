@@ -37,7 +37,7 @@ class MicroDescriptorBuilder
 template<typename T>
 MicroDescriptorBuilder<T>::MicroDescriptorBuilder(const string &inFile,const string &outFile){
 	inFile_ .open(inFile);
-	outFile_.open(outFile);
+	outFile_.open(outFile,ios::out | ios::binary);
 	SizeRaysUniverse_ = 0;
 }
 
@@ -83,16 +83,16 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 		ListRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize));
 
 		int ROI = 1;
+
 		for (ListRaysFlux::iterator i = Rays.begin(); i != Rays.end(); ++i)
 		{
-			outFile_ << descount++ << " " << VideoId << " " << ROI << " " << (nVideoFrames - 1)*2;
+			outFile_ << endl << descount++ << " " << VideoId << " " << ROI << " " << (nVideoFrames - 1)*2;
+
 
 			for (RayFlux::iterator j = i->begin(); j != i->end(); ++j)
 			{
 				outFile_ << " " << j->first << " " << j->second;
 			}
-
-			outFile_ << endl;
 		}
 
 		SizeRaysUniverse_ += Rays.size();
@@ -107,20 +107,22 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 
 template<typename T>
 bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,const string &outFile, const int SizeNorm, const bool Debug){
-	inFile_ .open(inFile);
-	outFile_.open(outFile);
+	inFile_ .open(inFile, ios::in | ios::binary);
+	outFile_.open(outFile, ios::out | ios::binary);
 
 	if(! isGood() ) return (false);
 
 	int Id, VideoId, ROI, RayFluxSize, HalfSize;
 	float dx,dy;
 
-	outFile_ << SizeNorm << endl;
+	outFile_ << SizeNorm;
 
 	while(! inFile_.eof() ){
 		inFile_ >> Id >> VideoId >> ROI >> RayFluxSize;
+
 		if(Debug)
 			cout << "Normalizando el rayo: " << Id << endl;
+
 		RayFlux NewRay;
 		HalfSize = RayFluxSize / 2;
 		for (int i = 0; i < HalfSize; ++i){
@@ -130,17 +132,16 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 
 		NewRay =  std::move(RaysExtractor_.Normalize(NewRay, SizeNorm));
 
-		outFile_ << Id << " " << VideoId << " " << ROI;
+		outFile_ << endl << Id << " " << VideoId << " " << ROI;
 
 		for (RayFlux::iterator j = NewRay.begin(); j != NewRay.end(); ++j)
 		{
 			outFile_ << " " << j->first << " " << j->second;
 		}
 
-		outFile_ << endl;
 		SizeRaysUniverse_++;
 	}
-	if(Debug)
+	//if(Debug)
 		cout << "Rayos totales: " << SizeRaysUniverse_ << endl;
 
 	return(true);
