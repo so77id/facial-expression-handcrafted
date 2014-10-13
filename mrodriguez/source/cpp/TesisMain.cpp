@@ -207,7 +207,7 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
         }
 
         Accuracy =  kFold.runKfoldCrossValidation();
-        cout << "Accuracy: " <<  Accuracy << endl;
+        cout << "\tAccuracy: " <<  Accuracy << endl;
 
         CSVFileName =  SVMcsvPath + "ConfusionMatrix_" + std::to_string(RSValue) + "_" + std::to_string(NValue) + "_" + std::to_string(KValue) + ".csv";
 
@@ -359,6 +359,7 @@ int main(int argc, char const *argv[])
             //<archivo configuracion microdescriptores> <path resultados> <video_list> <kfold_path> <csv_path>
              if(argc <= i + 5){
                     cout << "Los parametros ingresados no corresponden a esta opcion (-SVM). Intente de nuevo" << endl;
+                    return(-1);
              }
 
              SVMPathMacroFileName = string(argv[++i]);

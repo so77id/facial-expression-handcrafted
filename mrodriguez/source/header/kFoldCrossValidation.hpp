@@ -95,7 +95,7 @@ bool kFoldCrossValidation::loadDescriptors()
 
         MacroDescriptorFile_ >> nClusters_;
 
-        cout << "Cargando macrodescriptores" << endl;
+        //cout << "Cargando macrodescriptores" << endl;
 
         while(! MacroDescriptorFile_.eof()){
 
@@ -119,7 +119,7 @@ bool kFoldCrossValidation::loadDescriptors()
         int index, class_, frames;
         string buffer;
 
-	cout << "Cargando labels" << endl;
+	//cout << "Cargando labels" << endl;
 
         ListLabels TotalLabels;
 
@@ -147,12 +147,12 @@ bool kFoldCrossValidation::loadDescriptors()
 
         kFoldConfigFile_ >> kFolds_;
 
-        cout << "Cargando  kfold: " << kFolds_ << endl;
+        //cout << "Cargando  kfold: " << kFolds_ << endl;
 
         for (int i = 0; i < kFolds_; ++i)
         {
             kFoldConfigFile_ >> id >> train >> test;
-            cout << id << " " << train << " " << test << endl;
+            //cout << id << " " << train << " " << test << endl;
 
             ifstream trainFile( kFoldPath_ + train,ios::in | ios::binary);
             ifstream testFile( kFoldPath_ + test,ios::in | ios::binary);
@@ -205,7 +205,7 @@ bool kFoldCrossValidation::loadDescriptors()
 //=====================================================================
 // Se transpasan a Mat los datos de los descriptores y los labels
 
-        cout << "Transformando a mat" << endl;
+        //cout << "Transformando a mat" << endl;
 
         Mat AuxData_( TotalMacrodescriptors.size(),nClusters_,CV_32F);
         Mat AuxLabelData_( TotalLabels.size(),1,CV_32F);
