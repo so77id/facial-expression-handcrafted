@@ -200,7 +200,7 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
         Accuracy =  kFold.runKfoldCrossValidation();
         cout << "Accuracy: " <<  Accuracy << endl;
 
-        ResultConfigFile << RSValue << NValue << KValue << Accuracy << endl;
+        ResultConfigFile << RSValue << " " << NValue << " "  << KValue << " "  << Accuracy << endl;
 
     }
 
