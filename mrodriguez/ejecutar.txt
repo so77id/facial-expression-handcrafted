@@ -1,0 +1,5 @@
+ -RS 3 ../data/video_list.txt ../testing/microdescriptors_no_normalized/ 3 5 7
+ -N ../testing/microdescriptors_no_normalized/Config_microdescriptors_no_norm.txt /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/testing/microdescriptors_normalized/ 40 100 5
+ -K ../testing/microdescriptors_normalized/Config_microdescriptors_norm.txt ../testing/macrodescriptors/ 500 2500 500
+
+ ./TesisMain -RS 3 ../data/video_list.txt ../testing/microdescriptors_no_normalized/ 3 5 7 -N ../testing/microdescriptors_no_normalized/Config_microdescriptors_no_norm.txt /home/dev/mrodriguez-tesis/facial-framework-2014/mrodriguez/testing/microdescriptors_normalized/ 40 100 5  -K ../testing/microdescriptors_normalized/Config_microdescriptors_norm.txt ../testing/macrodescriptors/ 500 2500 500
