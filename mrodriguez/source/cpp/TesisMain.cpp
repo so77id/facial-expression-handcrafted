@@ -4,6 +4,7 @@
 #include <vector>
 #include "../header/MicroDescriptorBuilder.hpp"
 #include "../header/BoWBuilder.hpp"
+#include "../header/kFoldCrossValidation.hpp"
 
 using namespace std;
 
@@ -152,7 +153,59 @@ bool BoWBuilderAll(const string &KPathNormFileName, const string &KPathMacro, co
     return(true);
 }
 
+//=======================================================================
 
+
+bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SVMPathResult, const string SVMvideoList, const string SVMkFoldPath){
+
+    ifstream MicroConfigFile(SVMPathMacroFileName);
+    ofstream ResultConfigFile(SVMPathResult + "Config_result_svm.txt");
+
+    if(!MicroConfigFile.good()){
+        cout << "No se logro abrir el archivo de configuracion de macrodescriptores" << SVMPathMacroFileName << endl;
+        return(false);
+    }
+
+    if(!ResultConfigFile.good()){
+        cout << "No se logro abrir el archivo de configuracion de resultados en la ruta: " << SVMPathResult << endl;
+        return(false);
+    }
+
+    int RSValue, NValue, KValue;
+    int MacroListSize;
+    int Accuracy;
+    string MacroFileName;
+
+    CvSVMParams params;
+    params.svm_type    = CvSVM::C_SVC;
+    params.kernel_type = CvSVM::RBF;
+    params.gamma = pow(2,-20); //2^-x ---> x elevado
+    params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
+
+    MicroConfigFile >> MacroListSize;
+    ResultConfigFile << MacroListSize << endl;
+
+    for (int i = 0; i < MacroListSize; ++i)
+    {
+        MicroConfigFile >> MacroFileName >> RSValue >> NValue >> KValue;
+
+         kFoldCrossValidation kFold(MacroFileName, SVMkFoldPath, SVMvideoList, params);
+
+        cout << "Voy a cargar los descriptores de RS/N/K" << RSValue << "/" << NValue << "/" << KValue << endl;
+        if( false == kFold.loadDescriptors()){
+            cout << "Error al cargar los descriptores de RS/N/K"  << RSValue << "/" << NValue << "/" << KValue << endl;
+            return(false);
+        }
+
+        Accuracy =  kFold.runKfoldCrossValidation();
+        cout << "Accuracy: " <<  Accuracy << endl;
+
+        ResultConfigFile << RSValue << NValue << KValue << Accuracy << endl;
+
+    }
+
+    return(true);
+}
 
 
 //=======================================================================
@@ -178,6 +231,10 @@ int main(int argc, char const *argv[])
    string KPathMacro;
    int Kmin, Kmax, Kstep;
 
+   string SVMPathMacroFileName;
+   string SVMPathResult;
+   string SVMvideoList;
+   string SVMkFoldPath;
 
 
     for (int i = 1; i < argc; ++i)
@@ -274,6 +331,26 @@ int main(int argc, char const *argv[])
                 cout << "hubo un error en la creacion de macrodescriptores :((" << endl;
            }
        }
+
+       if(Aux == "-SVM"){
+            //<archivo configuracion microdescriptores> <path resultados> <video_list> <kfold_path>
+             if(argc <= i + 4){
+                    cout << "Los parametros ingresados no corresponden a esta opcion (-SVM). Intente de nuevo" << endl;
+             }
+
+             SVMPathMacroFileName = string(argv[++i]);
+             SVMPathResult = string(argv[++i]);
+             SVMvideoList = string(argv[++i]);
+             SVMkFoldPath = string(argv[++i]);
+
+             if( SVMkFoldCrossValidation(SVMPathMacroFileName,SVMPathResult,SVMvideoList,SVMkFoldPath) ){
+                cout << "Etapa de obtencion de resultados  de SVM completa" << endl;
+            }
+            else{
+                cout << "Hubo un error en la obtencion de resultados de SVM" << endl;
+            }
+       }
+
     }
 
     return 0;
