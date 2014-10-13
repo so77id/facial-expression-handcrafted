@@ -156,10 +156,11 @@ bool BoWBuilderAll(const string &KPathNormFileName, const string &KPathMacro, co
 //=======================================================================
 
 
-bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SVMPathResult, const string SVMvideoList, const string SVMkFoldPath){
+bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SVMPathResult, const string SVMvideoList, const string SVMkFoldPath, const string SVMcsvPath){
 
     ifstream MicroConfigFile(SVMPathMacroFileName);
     ofstream ResultConfigFile(SVMPathResult + "Config_result_svm.txt");
+    ofstream CSVConfigFile(SVMcsvPath + "Config_CSV.txt");
 
     if(!MicroConfigFile.good()){
         cout << "No se logro abrir el archivo de configuracion de macrodescriptores" << SVMPathMacroFileName << endl;
@@ -171,10 +172,17 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
         return(false);
     }
 
+
+    if(!CSVConfigFile.good()){
+        cout << "No se logro abrir el archivo de configuracion de los archivos CSV en la ruta: " << SVMcsvPath << endl;
+        return(false);
+    }
+
     int RSValue, NValue, KValue;
     int MacroListSize;
     float Accuracy;
     string MacroFileName;
+    string CSVFileName;
 
     CvSVMParams params;
     params.svm_type    = CvSVM::C_SVC;
@@ -184,6 +192,7 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
 
     MicroConfigFile >> MacroListSize;
     ResultConfigFile << MacroListSize << endl;
+    CSVConfigFile << MacroListSize << endl;
 
     for (int i = 0; i < MacroListSize; ++i)
     {
@@ -199,6 +208,20 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
 
         Accuracy =  kFold.runKfoldCrossValidation();
         cout << "Accuracy: " <<  Accuracy << endl;
+
+        CSVFileName =  SVMcsvPath + "ConfusionMatrix_" + std::to_string(RSValue) + "_" + std::to_string(NValue) + "_" + std::to_string(KValue) + ".csv";
+
+        ofstream CSVFile(CSVFileName);
+        if(! CSVFile.good()){
+            cout << "Error al abrir el archivo de matriz de confucion para los valores" << RSValue << " " << NValue << " "  << KValue << " "  << endl;
+        }
+        else{
+            kFold.GetConfusionMatrixCSV(CSVFile);
+            CSVFile.close();
+
+            CSVConfigFile << CSVFileName << RSValue << " " << NValue << " "  << KValue << " "  << Accuracy << endl;
+
+        }
 
         ResultConfigFile << RSValue << " " << NValue << " "  << KValue << " "  << Accuracy << endl;
 
@@ -235,7 +258,7 @@ int main(int argc, char const *argv[])
    string SVMPathResult;
    string SVMvideoList;
    string SVMkFoldPath;
-
+   string SVMcsvPath;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -333,8 +356,8 @@ int main(int argc, char const *argv[])
        }
 
        if(Aux == "-SVM"){
-            //<archivo configuracion microdescriptores> <path resultados> <video_list> <kfold_path>
-             if(argc <= i + 4){
+            //<archivo configuracion microdescriptores> <path resultados> <video_list> <kfold_path> <csv_path>
+             if(argc <= i + 5){
                     cout << "Los parametros ingresados no corresponden a esta opcion (-SVM). Intente de nuevo" << endl;
              }
 
@@ -342,8 +365,10 @@ int main(int argc, char const *argv[])
              SVMPathResult = string(argv[++i]);
              SVMvideoList = string(argv[++i]);
              SVMkFoldPath = string(argv[++i]);
+             SVMcsvPath = string(argv[++i]);
 
-             if( SVMkFoldCrossValidation(SVMPathMacroFileName,SVMPathResult,SVMvideoList,SVMkFoldPath) ){
+
+             if( SVMkFoldCrossValidation(SVMPathMacroFileName,SVMPathResult,SVMvideoList,SVMkFoldPath,SVMcsvPath) ){
                 cout << "Etapa de obtencion de resultados  de SVM completa" << endl;
             }
             else{

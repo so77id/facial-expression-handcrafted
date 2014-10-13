@@ -28,7 +28,7 @@ namespace utility{
     	typedef map<int,DataSet> MapDataSet; // key es el numero de la prueba del k-fold y el value es el dataset de la prueba
     	typedef MapDataSet::iterator MapDataSetIter; //Iterador del map de datasets;
 
-
+	typedef vector<vector<float>> ConfusionMatrix; //contenedor de una matriz de confucion
 
 	class ROI
 	{

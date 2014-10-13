@@ -23,6 +23,7 @@ using namespace utility;
     //typedef map<int,DataSet> MapDataSet; // key es el numero de la prueba del k-fold y el value es el dataset de la prueba
     //typedef MapDataSet::iterator MapDataSetIter; //Iterador del map de datasets;
 
+    //typedef vector<vector<int>> ConfusionMatrix; //contenedor de una matriz de confucion
 
 
 class kFoldCrossValidation
@@ -43,23 +44,31 @@ class kFoldCrossValidation
 
         MapDataSet kFoldInstance;
 
+        ConfusionMatrix CMatrixResults;
 
         double GetAccuracy();
+        bool AddToConfusionMatrix(int,int);
+        void NormConfusionMatrix();
     public:
-        kFoldCrossValidation(string, string, string, CvSVMParams);
+        kFoldCrossValidation(string, string, string, CvSVMParams,int);
         ~kFoldCrossValidation();
         bool loadDescriptors();
-        void buildConfusionMatrix();
+        void GetConfusionMatrixCSV(ostream&);
         double runKfoldCrossValidation();
 };
 
 
-kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kFoldPath, string LabelsFile, CvSVMParams Params){
+kFoldCrossValidation::kFoldCrossValidation(string MacroDescriptorFile, string kFoldPath, string LabelsFile, CvSVMParams Params, int NClass = 6){
     kFoldPath_ = kFoldPath;
     kFoldConfigFile_.open(kFoldPath_ + "kFold_config.txt");
     MacroDescriptorFile_.open(MacroDescriptorFile,ios::in | ios::binary);
     LabelsFile_.open(LabelsFile);
     Params_ = Params;
+
+    for (int i = 0; i < NClass; ++i)
+    {
+        CMatrixResults.push_back(std::move(vector<float>(NClass,0.0)) );
+    }
 }
 
 
@@ -241,6 +250,44 @@ double kFoldCrossValidation::GetAccuracy(){
     return( accuracy / (1.0 * ListAccuracy_.size()) );
 }
 
+bool kFoldCrossValidation::AddToConfusionMatrix(const int Label, const int PredictLabel){
+    //cout << "Sumando uno en " << Label-1 << " " << PredictLabel-1 << endl;
+    CMatrixResults[Label-1][PredictLabel-1]++;
+    return(true);
+}
+
+void kFoldCrossValidation::GetConfusionMatrixCSV(ostream& OutFile){
+
+    for (size_t i = 0; i < CMatrixResults.size(); ++i)
+    {
+        for (size_t j = 0; j < CMatrixResults[i].size(); ++j)
+        {
+            OutFile << CMatrixResults[i][j];
+            if(j+1 < CMatrixResults[i].size()) OutFile << ",";
+        }
+        if(i+1 < CMatrixResults.size()) OutFile << endl;
+    }
+}
+
+
+void kFoldCrossValidation::NormConfusionMatrix(){
+    int rowFrec = 0;
+
+    for (size_t i = 0; i < CMatrixResults.size(); ++i)
+    {
+        rowFrec = 0;
+        for (size_t j = 0; j < CMatrixResults[i].size(); ++j)
+        {
+            rowFrec += CMatrixResults[i][j];
+        }
+        for (size_t j = 0; j < CMatrixResults[i].size(); ++j)
+        {
+            CMatrixResults[i][j] = (CMatrixResults[i][j]/rowFrec) *100.0;
+
+        }
+    }
+}
+
 double kFoldCrossValidation::runKfoldCrossValidation(){
 
     int row = 0;
@@ -282,6 +329,16 @@ double kFoldCrossValidation::runKfoldCrossValidation(){
         //cout << "matriz de predicciones"   << PredictLabelSet << endl << endl;
         //cout << "matriz de labels originales" << TestLabelSet << endl << endl;
 
+        //==============================================
+        //Calculando matrices de confusion
+        for (int i = 0; i < TestLabelSet.rows; ++i)
+        {
+            AddToConfusionMatrix(TestLabelSet.at<float>(0,i) , PredictLabelSet.at<float>(0,i));
+        }
+
+        //==============================================
+
+
         PredictLabelSet = (PredictLabelSet == TestLabelSet) / 255;
 
         //Revisar el uso de la funcion SUM de opencv
@@ -289,8 +346,10 @@ double kFoldCrossValidation::runKfoldCrossValidation(){
         double accuracy = mean(PredictLabelSet.col(0))[0];
         //cout << "Accuracy: " << accuracy << endl;
         ListAccuracy_.push_back(accuracy);
-        cout << accuracy << endl;
+        //cout << accuracy << endl;
     }
+
+    NormConfusionMatrix();
 
     return(GetAccuracy());
 

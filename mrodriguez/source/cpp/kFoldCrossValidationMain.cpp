@@ -11,15 +11,16 @@ using namespace std;
 
 int main(int argc, char const *argv[])
 {
-    if(argc < 4) {
+    if(argc < 5) {
             cout << "Error en los argumentos" << endl;
-            cout << "./programa <Macrodescriptores> <video_list> <path kfold>" << endl;
+            cout << "./programa <Macrodescriptores> <video_list> <path kfold> <CSV File>" << endl;
             return (-1);
     }
 
     string macrodescriptores(argv[1]);
     string video_list(argv[2]);
     string path_kfold(argv[3]);
+    string CSV_File(argv[4]);
 
     CvSVMParams params;
     params.svm_type    = CvSVM::C_SVC;
@@ -38,6 +39,9 @@ int main(int argc, char const *argv[])
     cout << "Comienzo con la kfold" << endl;
     cout << "Accuracy: " <<  kFold.runKfoldCrossValidation() << endl;
 
+    ofstream OutCSV(CSV_File);
+    if(OutCSV.good())  kFold.GetConfusionMatrixCSV(OutCSV);
+    OutCSV.close();
 
 
     return 0;
