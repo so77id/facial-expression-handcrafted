@@ -173,7 +173,7 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
 
     int RSValue, NValue, KValue;
     int MacroListSize;
-    int Accuracy;
+    float Accuracy;
     string MacroFileName;
 
     CvSVMParams params;
