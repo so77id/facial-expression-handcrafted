@@ -27,3 +27,6 @@ target_link_libraries(TestFileCreator ${OpenCV_LIBS})
 
 add_executable(TesisMain "cpp/TesisMain")
 target_link_libraries(TesisMain ${OpenCV_LIBS})
+
+add_executable(SVMTestValues "cpp/SVMTestValues")
+target_link_libraries(SVMTestValues ${OpenCV_LIBS})
