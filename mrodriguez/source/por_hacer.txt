@@ -1,17 +1,70 @@
-#------------------------------------------------
-cambiar el testing
-cambiar el extracctor de rayos (listo)
-correr con toda la base de datos  varios valores
-#------------------------------------------------
-probar normalizacion en preprocesamiento
-guardadar datos del accuracy
-#------------------------------------------------
-valores de:
-    RS --> 3, 5, 7
-    SizeNorm --> 50 - 80
-    cluster --> 1000 - 10000
-separar el proceso de normalizacion de la extraccion
+Cambiar en el extractor de rayos
 
-Serializar con boost
+match(int iw, int jw, int irs, int jrs, mat f0, mat f1, int rsSize, int wsSize)
+{
+    int max = inf, i_op, j_op;
 
-The function is parallelized with the TBB library.
+    for(int i = iw; i < iw + wsSize; i++){
+
+        for(int j = jw; j < jw + wsSize; j++){
+
+            if (i < 0 || j <0 || i > f1.rows || j > f1.cols) continue;
+
+            int tmp = MSE(i,j,ir,jr,f0,f1);
+
+            if(tmp < max){
+                max = tmp;
+                i_op = i;
+                j_op = j;
+            }
+        }
+    }
+
+    return (i_op & j_op);
+}
+
+i' y j' son los encontrados en el match
+MSE(int i', int j', int irs, int jrs, mat f0, mat f1)
+{
+        int sum = 0;
+
+        for(int i = 0; i < rsSize; i++)
+        {
+            for(int j = 0; j < rsSize; j++)
+            {
+                sum += ((f0[i+i'][j+j'] - f1[i+irs][j+jrs])^2 );
+            }
+        }
+
+        return ( sqrt(sum));
+}
+
+//convension del i,j es en la esquina
+
+for(int i = (rsSize-1)/2; i < f0.rows - (rsSize-1)/2;i++ ){
+    for(int j = (rsSize-1)/2; j < f0.cols -(rsSize-1)/2;j++){
+        (i_op, j_op) = match (i,j,i-((wSize-1)/2) +((rsSize-1)/2), j - ((wSize-1)/2) +((rsSize-1)/2), f0, f1 );
+
+        Guardar los optimos y realizar procesamiento de rayos
+    }
+}
+________________________________________________________________________________________________________________________
+
+Mejorar con trackbar
+
+Debug con eclipse
+
+cortes transversales XT YT
+_________________________________________________________________________________________________________________________
+
+Prioridad.
+
+video de X Y
+Y Z
+X T
+
+Transversal cut
+proyection en opencv
+
+
+Programar LBP

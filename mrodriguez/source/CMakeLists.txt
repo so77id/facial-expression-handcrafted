@@ -30,3 +30,7 @@ target_link_libraries(TesisMain ${OpenCV_LIBS})
 
 add_executable(SVMTestValues "cpp/SVMTestValues")
 target_link_libraries(SVMTestValues ${OpenCV_LIBS})
+
+add_executable(VisualRaysTracker "cpp/VisualRaysTracker")
+target_link_libraries(VisualRaysTracker ${OpenCV_LIBS})
+

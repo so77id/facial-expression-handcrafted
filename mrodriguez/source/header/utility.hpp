@@ -17,6 +17,7 @@ namespace utility{
 	typedef pair<float,float> RaySupport; //Rayo de soporte, unidad minima de un rayo de flujo (ray flux)
 	typedef vector<RaySupport> RayFlux; //Rayo de flujo
 	typedef vector<RayFlux> ListRaysFlux; // vector de rayos de flujo
+	typedef map<pixel,RayFlux> MapRaysFlux; //Mapa para saber que rayo le pertence a que pixel
 
 	typedef vector<int> Macrodescriptor; // Macrodescriptor
 	typedef vector<Macrodescriptor> ListMacrodescriptors; //Vector de macrodescriptores;

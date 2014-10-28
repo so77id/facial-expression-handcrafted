@@ -1,4 +1,3 @@
-//hasta aca estamos ok
 #include "opencv2/opencv.hpp"
 #include <vector>
 #include <utility>
@@ -16,6 +15,7 @@ using namespace utility;
 	typedef pair<float,float> RaySupport; //Rayo de soporte, unidad minima de un rayo de flujo (ray flux)
 	typedef vector<RaySupport> RayFlux; //Rayo de flujo
 	typedef vector<RayFlux> ListRaysFlux; // vector de rayos de flujo
+	typedef map<pixel,RayFlux> MapRaysFlux; //Mapa para saber que rayo le pertence a que pixel
 */
 
 
@@ -28,7 +28,8 @@ class RaysExtractor
 		T SumMSE(const ROI&, const ROI&, const Mat&, const Mat &);
 		pixel ComputeFlow(const ROI &,const ROI &, const Mat &, Mat &,const int);
 	public:
-		ListRaysFlux Extract(VideoCapture &,const int);
+		MapRaysFlux Extract(VideoCapture &,const int);
+		MapRaysFlux ExtractVisualization(VideoCapture &,const int);
 		RayFlux Normalize(const RayFlux,const int);
 };
 
@@ -42,9 +43,11 @@ T RaysExtractor<T>::MSE(T intensity0, T intensity1){
 
 
 //Funcion que dado la RS y una Seccion de WS (del mismo tamaño de RS) calcula el MSE  entre ambas regiones
+
 template<typename T>
 T RaysExtractor<T>::SumMSE(const ROI& SupportRegion, const ROI& RoiWS,const Mat &ISR,const Mat &IWS){
 	T sum = 0;
+	//Que pasa si SR y ROiWS son de distinto tamaño
 	for (int iSR = SupportRegion.RowsBegin(), iWS = RoiWS.RowsBegin();
 			 iSR < SupportRegion.RowsEnd() && iWS < RoiWS.RowsEnd();
 			 iSR++ , iWS++){
@@ -80,7 +83,7 @@ pixel RaysExtractor<T>::ComputeFlow( const ROI &SR ,const ROI &WS, const Mat &IS
 		}
 	}
 
-
+	//Se peude sacar este for y realizar la validacion del calculo del mejor MSE  en el for de arriba
 	T min = std::numeric_limits<T>::max();
 	pixel point1;
 
@@ -100,29 +103,31 @@ pixel RaysExtractor<T>::ComputeFlow( const ROI &SR ,const ROI &WS, const Mat &IS
 
 
 template<typename T>
-ListRaysFlux RaysExtractor<T>::Extract(VideoCapture &video,const int SupportRegionSize){
+MapRaysFlux RaysExtractor<T>::Extract(VideoCapture &video,const int SupportRegionSize){
 
 	if(!video.isOpened()){
 		cout << "Video file error" << endl;
-		ListRaysFlux RaysRoi(0);
+		MapRaysFlux RaysRoi;
 		return(RaysRoi);
 	}
            //cuento la cantidad de frames del video
 	int nFrames = video.get(CV_CAP_PROP_FRAME_COUNT) - 1;
 
-	if(nFrames <= 1){
-		cout << "La cantidad de frames de este video" << endl;
-		ListRaysFlux RaysRoi(0);
+	if(nFrames < 2){
+		cout << "La cantidad de frames de este video es menor que 2" << endl;
+		MapRaysFlux RaysRoi;
+		return RaysRoi;
 	}
 
 	Mat frame0;
 	Mat frame1;
 
 	//video >> frame0;
+
 	video.read(frame0);
 
-	map<pixel,pixel> MovimentMap;
-	ListRaysFlux RaysRoi;
+	map<pixel,pixel> MovimentMap; //Mapa que permite ver a cual pixel se movio en el siguiente tiempo (t+1)
+	//En el caso del primer pixel parte con un movimiento a si mismo
 
 	for (int i = 0; i < frame0.rows; ++i)
 	{
@@ -133,7 +138,7 @@ ListRaysFlux RaysExtractor<T>::Extract(VideoCapture &video,const int SupportRegi
 		}
 	}
 
-	map<pixel,RayFlux>  RaysMap;
+	MapRaysFlux  RaysMap;
 
 	while(video.read(frame1))
 	{
@@ -157,15 +162,87 @@ ListRaysFlux RaysExtractor<T>::Extract(VideoCapture &video,const int SupportRegi
 		frame0 = frame1;
 	}
 
+	/*
 	for (std::map<pixel,RayFlux>::iterator i = RaysMap.begin(); i != RaysMap.end(); ++i){
 		//Cuando se normaliza directo
 		//RaysRoi.push_back( Normalize(i->second,SizeNorm) );
 		//CUando se normalzia en otro proceso
 		RaysRoi.push_back( i->second );
 	}
-
-	return (RaysRoi);
+	*/
+	return (RaysMap);
 }
+
+template<typename T>
+MapRaysFlux RaysExtractor<T>::ExtractVisualization(VideoCapture &video,const int SupportRegionSize){
+
+	if(!video.isOpened()){
+		cout << "Video file error" << endl;
+		MapRaysFlux RaysRoi;
+		return(RaysRoi);
+	}
+           //cuento la cantidad de frames del video
+	int nFrames = video.get(CV_CAP_PROP_FRAME_COUNT) - 1;
+
+	if(nFrames < 2){
+		cout << "La cantidad de frames de este video es menor que 2" << endl;
+		MapRaysFlux RaysRoi;
+		return RaysRoi;
+	}
+
+	Mat frame0;
+	Mat frame1;
+
+	//video >> frame0;
+	video.read(frame0);
+
+	map<pixel,pixel> MovimentMap; //Mapa que permite ver a cual pixel se movio en el siguiente tiempo (t+1)
+	//En el caso del primer pixel parte con un movimiento a si mismo
+
+	for (int i = 0; i < frame0.rows; ++i)
+	{
+		for (int j = 0; j < frame0.cols; ++j)
+		{
+			pixel ActualPixel = make_pair(i,j);
+			MovimentMap[ActualPixel] = ActualPixel;
+		}
+	}
+
+	MapRaysFlux  RaysMap;
+
+	while(video.read(frame1))
+	{
+		for (std::map<pixel,pixel>::iterator Map_it = MovimentMap.begin(); Map_it != MovimentMap.end(); ++Map_it)
+		{
+			pixel ActualPixel = Map_it->second;
+
+			ROI SupportRegion = CreateRoi(frame0, ActualPixel.first, ActualPixel.second, SupportRegionSize);
+
+			ROI WindowSearch = CreateRoi(frame1, ActualPixel.first, ActualPixel.second, (2*SupportRegionSize + 1));
+
+			pixel  OptimalPixel =  ComputeFlow( SupportRegion, WindowSearch, frame0, frame1, SupportRegionSize );
+
+			Map_it->second = OptimalPixel;
+
+			RaySupport newRaySupport = std::make_pair( OptimalPixel.first, OptimalPixel.second );
+
+			RaysMap[Map_it->first].push_back(newRaySupport);
+		}
+
+		frame0 = frame1;
+	}
+
+	/*
+	for (std::map<pixel,RayFlux>::iterator i = RaysMap.begin(); i != RaysMap.end(); ++i){
+		//Cuando se normaliza directo
+		//RaysRoi.push_back( Normalize(i->second,SizeNorm) );
+		//CUando se normalzia en otro proceso
+		RaysRoi.push_back( i->second );
+	}
+	*/
+	return (RaysMap);
+}
+
 
 template<typename T>
 RayFlux RaysExtractor<T>::Normalize(const RayFlux rays,const int SizeNorm){

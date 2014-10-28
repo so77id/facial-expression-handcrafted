@@ -190,7 +190,7 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
     params.gamma = pow(2,-20); //2^-x ---> x elevado
     params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
 //variar gamma 0 -> -50
-// variar C 10^-6 -> 10^6
+// variar C 10^-6 -> 10^6 /// 0 -> 2 ... steap 0.1     ---- 0 -> 10 ... step 1 --- 10 -> 2000 ... step 10
     MicroConfigFile >> MacroListSize;
     ResultConfigFile << MacroListSize << endl;
     CSVConfigFile << MacroListSize << endl;

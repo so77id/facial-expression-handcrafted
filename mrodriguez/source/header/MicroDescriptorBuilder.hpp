@@ -80,16 +80,21 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 		if(Debug)
 			cout << "Extrayendo rayos del video " << VideoPath << endl;
 
-		ListRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize));
+		MapRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize));
 
 		int ROI = 1;
 
+		for(MapRaysFlux::iterator i = Rays.begin(); i != Rays.end();++i)
+		{
+
+/*		}
+
 		for (ListRaysFlux::iterator i = Rays.begin(); i != Rays.end(); ++i)
 		{
+*/
 			outFile_ << endl << descount++ << " " << VideoId << " " << ROI << " " << (nVideoFrames - 1)*2;
 
-
-			for (RayFlux::iterator j = i->begin(); j != i->end(); ++j)
+			for (RayFlux::iterator j = i->second.begin(); j != i->second.end(); ++j)
 			{
 				outFile_ << " " << j->first << " " << j->second;
 			}

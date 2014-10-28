@@ -20,14 +20,14 @@ int main(int argc, char const *argv[])
 	video.open(argv[1]);
 
 	RaysExtractor<uchar> Extractor;
-	vector<vector<pair<float,float>>> RaysRoi = Extractor.Extract(video,atoi(argv[2]));
+	map< pair<int,int>, vector<pair<float,float>>> RaysRoi = Extractor.Extract(video,atoi(argv[2]));
 
 	int count = 0;
-	for (std::vector<vector<pair<float,float>>>::iterator i = RaysRoi.begin(); i != RaysRoi.end(); ++i)
+	for (std::map<pair<int,int>,vector<pair<float,float>>>::iterator i = RaysRoi.begin(); i != RaysRoi.end(); ++i)
 	{
 		count++;
 		cout << "Rayo: " << count << " --> ";
-		for (std::vector<pair<float,float>>::iterator j = i->begin(); j != i->end(); ++j)
+		for (std::vector<pair<float,float>>::iterator j = i->second.begin(); j != i->second.end(); ++j)
 		{
 			cout << "(" << j->first << ","<< j->second << ") ";
 		}cout << endl;
