@@ -33,18 +33,38 @@ vector<Tcolor> TcolorList = { std::make_tuple(255,0,0),
                                               std::make_tuple(0,128,128)
                                           };
 
+void Pintar_imgXT(cv::Mat &frame, std::vector<cv::Mat> &vectImg, const int indexImg,const int r, const int c, const int ActualFrame, const int size, const Tcolor &color){
+    std::vector<Mat> FrameChannels, dstChannels;
+    cv::split(frame, FrameChannels);
+    cv::split(vectImg[indexImg], dstChannels);
 
+    dstChannels[0].col(ActualFrame) += FrameChannels[0].col(c);
+    dstChannels[1].col(ActualFrame) += FrameChannels[1].col(c);
+    dstChannels[2].col(ActualFrame) += FrameChannels[2].col(c);
+
+    int rMax = r + (size-1)/2 ;
+     for(int i = r - (size-1)/2; i < rMax; i++)
+     {
+        if(i < 0 || i >= frame.rows) continue;
+
+        dstChannels[0].col(ActualFrame).at<uchar>(i,0) = std::get<0>(color);
+        dstChannels[1].col(ActualFrame).at<uchar>(i,0) = std::get<1>(color);
+        dstChannels[2].col(ActualFrame).at<uchar>(i,0) = std::get<2>(color);
+     }
+
+    cv::merge(dstChannels, vectImg[indexImg]);
+}
 
 void Pintar(Mat &frame, int r, int c, int const size, Tcolor const color){
 
     vector<Mat> channels;
 
     split(frame, channels);
-    int rMax = r + size;
-    int cMax = c + size;
+    int rMax = r + (size-1)/2 ;
+    int cMax = c + (size-1)/2;
 
-    for(int i = r; i < rMax; i++){
-        for(int j = c; j < cMax; j++){
+    for(int i = r - (size-1)/2; i < rMax; i++){
+        for(int j = c - (size-1)/2; j < cMax; j++){
 
             if(i < 0 || j < 0 || i >= frame.rows || j >= frame.cols) continue;
 
@@ -78,8 +98,8 @@ void OnClickCallBack(int event, int x, int y, int flags, void* param)
 
 int main(int argc, char const *argv[])
 {
-    if(argc < 7){
-        cout << "Error intente:\n ./programa <Video> <SupportRegionSize> <WindowSearchSize> <MaxSizePixelList> <Paint size> <NameOutFile>"  << endl;
+    if(argc < 9){
+        cout << "Error intente:\n ./programa <Video> <SupportRegionSize> <WindowSearchSize> <MaxSizePixelList> <Paint size> <NameOutFile> <XT Path> <XY Path>"  << endl;
         return (-1);
     }
 
@@ -91,8 +111,11 @@ int main(int argc, char const *argv[])
     MaxSizePixelList = std::atoi(argv[4]);
     int PaintSize = std::atoi(argv[5]);
     string NameOutFIle(argv[6]);
+    string XTPath(argv[7]);
+    string YTPath(argv[8]);
 
-    Mat dstImage, grayImage;
+
+    Mat dstImage, grayImage, dstImageConst;
 
     namedWindow("Eleccion",1);
     setMouseCallback("Eleccion", OnClickCallBack, NULL);
@@ -134,17 +157,18 @@ int main(int argc, char const *argv[])
     MapRaysFlux RaysRoi = Extractor.Extract(VideoFileForExtract,std::atoi(argv[2]), std::atoi(argv[3]), true);
 
 
-    vector<Mat> XT(PixelList.size(), Mat::zeros(Frame.rows, nFrames, Frame.type()));
-    vector<Mat> YT(PixelList.size(), Mat::zeros(Frame.cols, nFrames, Frame.type()));
+    std::vector<cv::Mat> XT(PixelList.size(), cv::Mat::zeros(Frame.rows, nFrames, Frame.type()));
+    std::vector<cv::Mat> YT(PixelList.size(), cv::Mat::zeros(Frame.cols, nFrames, Frame.type()));
 
 
     int nFrame = -1, r, c;
     do{
-        vector<Mat> dstImageSplit(3);
+        std::vector<cv::Mat> dstImageSplit(3);
 
 
         cvtColor(Frame, grayImage, CV_BGR2GRAY);
         cvtColor(grayImage, dstImage, CV_GRAY2BGR);
+        cvtColor(grayImage, dstImageConst, CV_GRAY2BGR);
 
         int colorCount = 0;
         for (std::vector<pixel>::iterator i = PixelList.begin(); i != PixelList.end(); ++i)
@@ -159,7 +183,11 @@ int main(int argc, char const *argv[])
                 r = RaysRoi[actual][nFrame].first;
                 c = RaysRoi[actual][nFrame].second;
             }
-            Pintar(dstImage, r,c,PaintSize,TcolorList[colorCount]);
+
+            cout << "Frame: " << nFrame << " | ColorCount: " << colorCount << endl;
+            Pintar_imgXT(dstImageConst, XT, colorCount, r, c, nFrame+1, PaintSize, TcolorList[colorCount]);
+
+            Pintar(dstImage, r, c, PaintSize, TcolorList[colorCount]);
 
             colorCount++;
         }
@@ -168,6 +196,17 @@ int main(int argc, char const *argv[])
 
         nFrame++;
     }while(VideoFile.read(Frame));
+
+
+    for (size_t i = 0; i < PixelList.size(); ++i)
+    {
+        pixel ActualPixel  = PixelList[i];
+        string NameXT = XTPath + std::to_string(ActualPixel.first) + "_" + std::to_string(ActualPixel.second) + ".jpg";
+        string NameYT = YTPath + std::to_string(ActualPixel.first) + "_" + std::to_string(ActualPixel.second) + ".jpg";
+
+        imwrite( NameXT.c_str(), XT[i] );
+        imwrite( NameYT.c_str(), YT[i] );
+    }
 
     return 0;
 }

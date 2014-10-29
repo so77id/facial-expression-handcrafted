@@ -1,7 +1,7 @@
 #include <fstream>
 #include <string>
 #include "opencv2/opencv.hpp"
-#include "RaysExtractor.hpp"
+#include "RaysExtractor2.hpp"
 #include "utility.hpp"
 
 using namespace std;
@@ -23,7 +23,7 @@ class MicroDescriptorBuilder
 	private:
 		ifstream inFile_;
 		ofstream outFile_;
-		RaysExtractor<T> RaysExtractor_;
+		RaysExtractor RaysExtractor_;
 		size_t SizeRaysUniverse_;
 	public:
 		MicroDescriptorBuilder(const string&, const string&);
@@ -68,6 +68,7 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 
 	int descount = 1;
 
+	int WSsize = (SupportRegionSize*2)+1;
 
 	while(!inFile_.eof()){
 
@@ -80,7 +81,7 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 		if(Debug)
 			cout << "Extrayendo rayos del video " << VideoPath << endl;
 
-		MapRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize));
+		MapRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize,WSsize));
 
 		int ROI = 1;
 
