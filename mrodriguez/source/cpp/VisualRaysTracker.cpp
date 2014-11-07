@@ -7,7 +7,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 
-#include "../header/RaysExtractor2.hpp"
+#include "../header/RaysExtractor.hpp"
 #include "../header/utility.hpp"
 
 using namespace cv;
@@ -33,17 +33,20 @@ vector<Tcolor> TcolorList = { std::make_tuple(255,0,0),
                                               std::make_tuple(0,128,128)
                                           };
 
-void Pintar_imgXT(cv::Mat &frame, std::vector<cv::Mat> &vectImg, const int indexImg,const int r, const int c, const int ActualFrame, const int size, const Tcolor &color){
+void Pintar_img(cv::Mat &frame, std::vector<cv::Mat> &vectImg, const int indexImg,const int r, const int c, const int ActualFrame, const int size, const Tcolor &color, const bool xt = true){
     std::vector<Mat> FrameChannels, dstChannels;
     cv::split(frame, FrameChannels);
     cv::split(vectImg[indexImg], dstChannels);
 
-    dstChannels[0].col(ActualFrame) += FrameChannels[0].col(c);
-    dstChannels[1].col(ActualFrame) += FrameChannels[1].col(c);
-    dstChannels[2].col(ActualFrame) += FrameChannels[2].col(c);
+    int C =  xt ? c : r;
+    int R =  xt ? r : c;
 
-    int rMax = r + (size-1)/2 ;
-     for(int i = r - (size-1)/2; i < rMax; i++)
+    dstChannels[0].col(ActualFrame) += FrameChannels[0].col(C);
+    dstChannels[1].col(ActualFrame) += FrameChannels[1].col(C);
+    dstChannels[2].col(ActualFrame) += FrameChannels[2].col(C);
+
+    int rMax = R + (size-1)/2 ;
+     for(int i = R - (size-1)/2; i < rMax; i++)
      {
         if(i < 0 || i >= frame.rows) continue;
 
@@ -153,15 +156,25 @@ int main(int argc, char const *argv[])
 
     cout << "Comenzando la extraccion de rayos" << endl;
 
+//borrar
+    //pixel Par = make_pair(0,0);
+
     RaysExtractor Extractor;
-    MapRaysFlux RaysRoi = Extractor.Extract(VideoFileForExtract,std::atoi(argv[2]), std::atoi(argv[3]), true);
+    MapRaysFlux RaysRoi = Extractor.Extract(VideoFileForExtract,std::atoi(argv[2]), std::atoi(argv[3]),true);
 
+    cout << "rows: " << Frame.rows << " | Cols: " << Frame.cols << " | Frames: " << nFrames << endl;
 
-    std::vector<cv::Mat> XT(PixelList.size(), cv::Mat::zeros(Frame.rows, nFrames, Frame.type()));
-    std::vector<cv::Mat> YT(PixelList.size(), cv::Mat::zeros(Frame.cols, nFrames, Frame.type()));
+    std::vector<cv::Mat> XT(PixelList.size());
+    std::vector<cv::Mat> YT(PixelList.size());
 
+    for (std::vector<cv::Mat>::iterator xt = XT.begin(), yt =YT.begin(); xt != XT.end() && yt != YT.end(); ++xt, ++yt)
+    {
+        *xt = cv::Mat::zeros(Frame.rows, nFrames, Frame.type());
+        *yt = cv::Mat::zeros(Frame.cols, nFrames, Frame.type());
+    }
 
     int nFrame = -1, r, c;
+
     do{
         std::vector<cv::Mat> dstImageSplit(3);
 
@@ -184,18 +197,33 @@ int main(int argc, char const *argv[])
                 c = RaysRoi[actual][nFrame].second;
             }
 
-            cout << "Frame: " << nFrame << " | ColorCount: " << colorCount << endl;
-            Pintar_imgXT(dstImageConst, XT, colorCount, r, c, nFrame+1, PaintSize, TcolorList[colorCount]);
+            //cout << "Frame: " << nFrame << " | ColorCount: " << colorCount << endl;
+            Pintar_img(dstImageConst, XT, colorCount, r, actual.second, nFrame+1, PaintSize, TcolorList[colorCount], true);
+            Pintar_img(dstImageConst, YT, colorCount, actual.first, c, nFrame+1, PaintSize, TcolorList[colorCount], false);
 
             Pintar(dstImage, r, c, PaintSize, TcolorList[colorCount]);
 
             colorCount++;
         }
 
+
         outputVideo << dstImage;
 
         nFrame++;
     }while(VideoFile.read(Frame));
+
+/*
+    pair<double,double> ds;
+    pair<double,double> mean;
+    for (MapRaysFlux::iterator map_it = RaysRoi.begin(); map_it != RaysRoi.end(); ++map_it)
+    {
+            ds = std::move(utility::StandarDeviation(map_it->second));
+            mean = std::move(utility::mean(map_it->second));
+
+           // if( ds.first > 0 || ds.second > 0)
+            cout << "Rayo del pixel (" << map_it->first.first << "," << map_it->first.second << ") -> desviacion estandar en x: " << ds.first << " en y: " << ds.second << " Tamaño del size:" <<  map_it->second.size() <<  endl;
+    }
+*/
 
 
     for (size_t i = 0; i < PixelList.size(); ++i)

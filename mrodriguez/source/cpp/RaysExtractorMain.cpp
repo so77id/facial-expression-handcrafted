@@ -7,22 +7,30 @@
 using namespace cv;
 using namespace std;
 
+
+
 int main(int argc, char const *argv[])
 {
 
-	if(argc < 4) {
+	if(argc < 6) {
 			cout << "Error en los argumentos" << endl;
-			cout << "./programa <Video_path> <Size Support Region> <Size Normalization>" << endl;
+			cout << "./programa <Video_path> <Size Support Region> <Size Windows Search>  <x> <y>" << endl;
 			return (-1);
 	}
 
 	VideoCapture video;
+	VideoCapture V1;
 	video.open(argv[1]);
 
-	RaysExtractor<uchar> Extractor;
-	map< pair<int,int>, vector<pair<float,float>>> RaysRoi = Extractor.Extract(video,atoi(argv[2]));
+	//pixel Par = std::make_pair(std::atoi(argv[4]),std::atoi(argv[5]));
 
-	int count = 0;
+
+
+	RaysExtractor Extractor;
+	map<pair<int,int>, vector<pair<float,float>>> RaysRoi = Extractor.Extract(video,std::atoi(argv[2]), std::atoi(argv[3]));
+
+
+	/*int count = 0;
 	for (std::map<pair<int,int>,vector<pair<float,float>>>::iterator i = RaysRoi.begin(); i != RaysRoi.end(); ++i)
 	{
 		count++;
@@ -32,8 +40,9 @@ int main(int argc, char const *argv[])
 			cout << "(" << j->first << ","<< j->second << ") ";
 		}cout << endl;
 	}
-	cout << RaysRoi.size() << endl;
 
+	cout << RaysRoi.size() << endl;
+	*/
 
 	//TEST NORMALIZACION
 /*	RaysExtractor<uchar> Extractor;

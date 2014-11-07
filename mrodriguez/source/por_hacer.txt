@@ -68,3 +68,10 @@ proyection en opencv
 
 
 Programar LBP
+______________________________________________________________________________________________________________________________
+BOOST range hace magia.
+Instalar boost
+
+
+
+FACTORY buscar como hacer

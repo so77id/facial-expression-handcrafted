@@ -1,7 +1,7 @@
 #include <fstream>
 #include <string>
 #include "opencv2/opencv.hpp"
-#include "RaysExtractor2.hpp"
+#include "RaysExtractor.hpp"
 #include "utility.hpp"
 
 using namespace std;

@@ -1,4 +1,6 @@
-#pragma once //preguntar que mierda es
+#ifndef UTILITY_HPP_
+#define UTILITY_HPP_
+
 #include <iostream>
 #include "opencv2/opencv.hpp"
 
@@ -30,6 +32,45 @@ namespace utility{
     	typedef MapDataSet::iterator MapDataSetIter; //Iterador del map de datasets;
 
 	typedef vector<vector<float>> ConfusionMatrix; //contenedor de una matriz de confucion
+
+	vector<string> split(string ,string );
+	pair<double,double> mean( RayFlux &);
+	pair<double,double> StandarDeviation( RayFlux & rayo);
+	float TransformLabels(int );
+
+
+
+	namespace lbp {
+
+		// templated functions
+		template <typename _Tp>
+		void OLBP_(const cv::Mat& src, cv::Mat& dst);
+
+		template <typename _Tp>
+		void ELBP_(const cv::Mat& src, cv::Mat& dst, int radius = 1, int neighbors = 8);
+
+		template <typename _Tp>
+		void VARLBP_(const cv::Mat& src, cv::Mat& dst, int radius = 1, int neighbors = 8);
+
+		// wrapper functions
+		void OLBP(const cv::Mat& src, cv::Mat& dst);
+		void ELBP(const cv::Mat& src, cv::Mat& dst, int radius = 1, int neighbors = 8);
+		void VARLBP(const cv::Mat& src, cv::Mat& dst, int radius = 1, int neighbors = 8);
+
+		// cv::Mat return type functions
+		cv::Mat OLBP(const cv::Mat& src);
+		cv::Mat ELBP(const cv::Mat& src, int radius = 1, int neighbors = 8);
+		cv::Mat VARLBP(const cv::Mat& src, int radius = 1, int neighbors = 8);
+
+	}
+}
+
+#endif
+
+
+/*
+
+
 
 	class ROI
 	{
@@ -73,6 +114,7 @@ namespace utility{
 	};
 
 
+
 	//Funcion para crear ROI
 	//i -> rows
 	//j -> cols
@@ -107,17 +149,7 @@ namespace utility{
 		return (roi);
 	}
 
-	vector<string> split(string str,string sep){
-	    char* cstr = const_cast<char*>(str.c_str());
-	    char* current;
-	    vector<string> arr;
-	    current = strtok(cstr,sep.c_str());
-	    while(current != NULL){
-	        arr.push_back(current);
-	        current=strtok(NULL,sep.c_str());
-	    }
-	    return arr;
-	}
+
 
 	float EuclideanDistance(const Mat & vec1,const Mat &vec2){
 		float sum = 0;
@@ -160,35 +192,8 @@ namespace utility{
 		return (sum);
 	}
 
-	float TransformLabels(int i){
-		float dato = 0.0;
 
-		switch (i){
-			case 1:
-				dato = -1.0;
-				break;
-			case 2:
-				dato = -0.6;
-				break;
-			case 3:
-				dato = -0.2;
-				break;
-			case 4:
-				dato = 0.2;
-				break;
-			case 5:
-				dato = 0.6;
-				break;
-			case 6:
-				dato = 1.0;
-				break;
-		}
-		return dato;
-	}
 
-}
-
-/*
 int main(int argc, char const *argv[])
 {
 	Mat image;
