@@ -82,8 +82,8 @@ ConfusionMatrix kFoldCrossValidation::GetConfusionMatrix() { return (CMatrixResu
 
 bool kFoldCrossValidation::Load(const string& MicroDescriptorFileName, const string& kFoldPath, const string& LabelsFileName){
 
-    int video_id, video_class, roi, ray_id, kfold_id, frames;
-    int RaySize, HalfSize, kFoldSize;
+    int video_id, video_class, kfold_id, frames;
+    int RaySize, kFoldSize;
     int i;
     float dx,dy;
     string trainName,testName, buffer;
@@ -111,20 +111,40 @@ bool kFoldCrossValidation::Load(const string& MicroDescriptorFileName, const str
 
 //Cargando rayos
     cout << "cargando rayos" << endl;
-    MicroDescriptorFile >> RaySize;
-    HalfSize = RaySize / 2;
 
+    getline(MicroDescriptorFile,buffer);
+    RaySize = std::stoi(buffer);
+
+
+
+    cout << "RaySize: " << RaySize << endl;
     while(! MicroDescriptorFile.eof() )
     {
-        MicroDescriptorFile >> ray_id >> video_id >> roi;
-        NewRay.clear();
+        getline(MicroDescriptorFile,buffer);
+        std::vector<string> Vbuffer = utility::split(buffer," ");
 
-        for (i = 0; i < HalfSize; ++i)
+        //ray_id     = std::stoi(Vbuffer[0]);
+        video_id  = std::stoi(Vbuffer[1]);
+        //roi          = std::stoi(Vbuffer[2]);
+
+//        MicroDescriptorFile >> ray_id >> video_id >> roi >> frames;
+
+        NewRay.clear();
+        //cout << "Cargando el rayo " << ray_id << " video_id: " << video_id << endl;
+
+        for(i = 3; i < RaySize +3;)
+        {
+            dx = std::stof(Vbuffer[i++]);
+            dy = std::stof(Vbuffer[i++]);
+            NewRay.push_back(std::make_pair(dx,dy));
+        }
+/*
+        for (i = 3; i < HalfSize; ++i)
         {
             MicroDescriptorFile >> dx >> dy;
             NewRay.push_back(make_pair(dx,dy));
         }
-
+*/
         VideosRays[video_id].push_back(std::move(NewRay));
     }
 

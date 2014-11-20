@@ -84,35 +84,52 @@ MapMacrodescriptors MacroDescriptorBuilder::Run(const string &OutFileName,DataSe
 
 MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& VideosRays, const size_t nClusters, const TermCriteria& tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001), const size_t retries = 1, const size_t flags = KMEANS_PP_CENTERS)
 {
-    int RaysSize = VideosRays.begin()->second.size();
+    size_t RaysSize = VideosRays.begin()->second.begin()->size()*2;
+    size_t TrainSize = 0, TestSize = 0;
+
+    for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
+    {
+        TrainSize += VideosRays[*SIter].size();
+    }
+
+    for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
+    {
+        TestSize += VideosRays[*SIter].size();
+    }
+
     size_t i,j,id;
     //int sizeDataSet = DS.first.size() + DS.second.size();
-    cv::Mat TrainData(DS.first.size(),RaysSize,CV_32F);
-    cv::Mat TestData(DS.second.size(),RaysSize,CV_32F);
+    cv::Mat TrainData(TrainSize,RaysSize,CV_32F);
+    cv::Mat TestData(TestSize,RaysSize,CV_32F);
 //    cv::Mat Vocabulary;
     MapMacrodescriptors MMacros;
-
+    cout << "raysize: " << RaysSize << endl;
+    cout << "RayCount" << TestSize + TrainSize << endl;
     //Creando matrix de train
-
+    cout << "Creando matrix de train" << endl;
     i = 0;
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
+        //cout << "valor del SIter: " << *SIter << endl;
         MMacros[*SIter] = Macrodescriptor(nClusters,0);
 
         for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)
         {
+            //cout << "Cargando el rayo: " << i << endl;
             j = 0;
             for(RayFlux::iterator RIter = LIter->begin(); RIter != LIter->end(); ++ RIter)
             {
+                        //cout << RIter->first << " " << RIter->second << " ";
                             TrainData.at<float>(i,j) = RIter->first; j++;
                             TrainData.at<float>(i,j) = RIter->second; j++;
             }
+            //cout << endl;
             i++;
         }
     }
-
+//Arreglar igual que el train
     //Creando matrix de test
-
+    cout << "creadon matrix de test " << endl;
     i = 0;
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
     {
@@ -131,20 +148,20 @@ MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& Vide
     }
 
     //Extrayendo clusters
-
+    cout << "Extrayendo clusters" << endl;
     BOWKMeansTrainer bowTrainer(nClusters, tc, retries,flags);
     bowTrainer.add(TrainData);
     Vocabulary = bowTrainer.cluster();
 
     //Match para el train
-
+    cout << "Matcheando" << endl;
     cv::Ptr<cv::DescriptorMatcher> matcher = new cv::BFMatcher(cv::NORM_L2);
     matcher->add(std::vector<cv::Mat>(1, Vocabulary));
 
     vector<DMatch> matchesTrain;
     matcher->match(TrainData,matchesTrain);
 
-
+    cout << "Creando descriptores de entrenamiento" << endl;
     i = 0; // contador del descriptor actual
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
@@ -159,6 +176,7 @@ MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& Vide
     vector<DMatch> matchesTest;
     matcher->match(TestData,matchesTest);
 
+    cout << "Creando descriptores de test" << endl;
 
     i = 0; // contador del descriptor actual
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)

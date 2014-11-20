@@ -68,11 +68,13 @@ void Svm::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
     cv::Mat TestLabel(DS.second.size(),1,CV_32F);
     cv::Mat PredictedLabel(DS.second.size(),1,CV_32F);
 
+    cout << "creando matriz de confusion" << endl;
     for (i = 0; i < nClass; ++i)
     {
         CMatrixResults_.push_back(std::move(vector<float>(nClass,0.0)) );
     }
 
+    cout << "creando matriz de entrenamieno" << endl;
     i = 0;
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
@@ -87,6 +89,7 @@ void Svm::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
         i++;
     }
 
+    cout << "creando matriz de test" << endl;
     i = 0;
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
     {
@@ -101,18 +104,25 @@ void Svm::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
         i++;
     }
 
+    cout << "entrenando el SVM" << endl;
     CvSVM SVM_;
     SVM_.train(TrainData, TrainLabel, Mat(), Mat(), Params);
 
+    cout << "PRediciendo" << endl;
     SVM_.predict(TestData,PredictedLabel);
 
+    cout << "Calculando la matrix de confusion" << endl;
     for (int ii = 0; ii < TestData.rows; ++ii)
     {
+        cout << "\t en el (i,j)" << (TestData.at<float>(0,ii) - 1) << " , " << (PredictedLabel.at<float>(0,ii) -1) << endl;
         CMatrixResults_[TestData.at<float>(0,ii)-1][PredictedLabel.at<float>(0,ii)-1]++;
     }
 
+    cout << "Calculando accuracy"<< endl;
+
     PredictedLabel = (PredictedLabel == TestData) / 255;
     Accuracy_ = mean(PredictedLabel.col(0))[0];
+    cout << "Accuracy: " << Accuracy_ << endl;
 }
 
 
