@@ -1,4 +1,7 @@
 #include "utility.hpp"
+#include "lbp.cpp"
+#include "ldn.cpp"
+#include "mask.cpp"
 
 using namespace cv;
 

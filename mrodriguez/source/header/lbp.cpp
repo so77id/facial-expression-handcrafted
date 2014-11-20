@@ -1,3 +1,5 @@
+#ifndef LBP_CPP_
+#define LBP_CPP_
 #include "utility.hpp"
 
 using namespace cv;
@@ -143,3 +145,7 @@ void lbp::VARLBP(const Mat& src, Mat& dst, int radius, int neighbors) {
 Mat lbp::OLBP(const Mat& src) { Mat dst; OLBP(src, dst); return dst; }
 Mat lbp::ELBP(const Mat& src, int radius, int neighbors) { Mat dst; ELBP(src, dst, radius, neighbors); return dst; }
 Mat lbp::VARLBP(const Mat& src, int radius, int neighbors) { Mat dst; VARLBP(src, dst, radius, neighbors); return dst; }
+
+
+
+#endif

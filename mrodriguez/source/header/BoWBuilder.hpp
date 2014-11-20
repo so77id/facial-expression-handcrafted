@@ -125,29 +125,13 @@ bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, Ter
     BOWKMeansTrainer bowTrainer(NumberOfClusters_, tc, retries,flags);
 	bowTrainer.add(MicroDescriptors_);
 
-	//for (int i = 0; i < MicroDescriptors_.rows; ++i)
-//	{
-	//	bowTrainer.add(MicroDescriptors_.row(i));
-//	}
-
 	cout << "Extrayendo clusters" << endl;
 	Clusters_ = bowTrainer.cluster();
 
-
-	/*cout << "----------------" << endl;
-	for (int i = 0; i < Clusters_.rows; ++i)
-	{
-		for (int j = 0; j < Clusters_.cols; ++j)
-		{
-			cout << Clusters_.at<float>(i,j) << " ";
-		}
-		cout << endl;
-	}
-	cout << "----------------" << endl;
-	*/
 	cv::Ptr<cv::DescriptorMatcher > matcher = new cv::BFMatcher(cv::NORM_L2);
 	matcher->add(std::vector<cv::Mat>(1, Clusters_));
-	// matches
+
+
 	vector<DMatch> matches;
 	matcher->match(MicroDescriptors_,matches);
 
@@ -160,6 +144,7 @@ bool BoWBuilder::ExtractClusters(int retries=1, int flags=KMEANS_PP_CENTERS, Ter
 
 		j++;
 	}
+
 	cout << "Cantidad de rayos ingresados: " << j << endl;
 	return (true);
 }

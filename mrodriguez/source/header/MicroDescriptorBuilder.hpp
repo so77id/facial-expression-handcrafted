@@ -88,11 +88,6 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 		for(MapRaysFlux::iterator i = Rays.begin(); i != Rays.end();++i)
 		{
 
-/*		}
-
-		for (ListRaysFlux::iterator i = Rays.begin(); i != Rays.end(); ++i)
-		{
-*/
 			outFile_ << endl << descount++ << " " << VideoId << " " << ROI << " " << (nVideoFrames - 1)*2;
 
 			for (RayFlux::iterator j = i->second.begin(); j != i->second.end(); ++j)
