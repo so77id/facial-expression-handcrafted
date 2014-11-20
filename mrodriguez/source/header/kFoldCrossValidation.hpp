@@ -319,10 +319,12 @@ double kFoldCrossValidation::runKfoldCrossValidation(){
         CvSVM SVM_;
         SVM_.train(TrainSet, TrainLabelSet, Mat(), Mat(), Params_);
 
-        /*for (int i = 0; i < TestSet.rows; ++i)
+/*
+        for (int i = 0; i < TestSet.rows; ++i)
         {
                 cout << SVM_.predict(TrainSet.row(i),true) << " ";
-        }cout << endl << endl;
+        }
+        cout << endl << endl;
 */
         SVM_.predict(TestSet,PredictLabelSet);
 

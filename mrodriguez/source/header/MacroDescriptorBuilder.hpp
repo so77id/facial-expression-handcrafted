@@ -85,7 +85,7 @@ MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& Vide
 {
     int RaysSize = VideosRays.begin()->second.size();
     int i,j,id;
-    int sizeDataSet = DS.first.size() + DS.second.size();
+    //int sizeDataSet = DS.first.size() + DS.second.size();
     cv::Mat TrainData(DS.first.size(),RaysSize,CV_32F);
     cv::Mat TestData(DS.second.size(),RaysSize,CV_32F);
 //    cv::Mat Vocabulary;

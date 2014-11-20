@@ -45,7 +45,8 @@ using namespace utility;
 class SVM
 {
     private:
-
+        float Accuracy_;
+        ConfusionMatrix CMatrixResults_;
     public:
         SVM();
         ~SVM();
@@ -57,7 +58,63 @@ class SVM
 SVM::SVM(){}
 SVM::~SVM(){}
 
-void SVM::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MapMacrodescriptors, const CvSVMParams &Params, const size_t nClass = 6 )
+void SVM::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescriptors, const CvSVMParams &Params, const size_t nClass = 6 )
 {
+    int MacroSize = MapMacrodescriptors.begin()->second.size();
+    size_t i,j;
+    cv::Mat TrainData(DS.first.size(),MacroSize,CV_32F);
+    cv::Mat TrainLabel(DS.first.size(),1,CV_32F);
+    cv::Mat TestData(DS.second.size(),MacroSize,CV_32F);
+    cv::Mat TestLabel(DS.second.size(),1,CV_32F);
+    cv::Mat PredictedLabel(DS.second.size(),1,CV_32F);
 
+    for (int i = 0; i < NClass; ++i)
+    {
+        CMatrixResults_.push_back(std::move(vector<float>(NClass,0.0)) );
+    }
+
+    i = 0;
+    for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
+    {
+        TrainLabel.at<float>(i,0) = Labels[*SIter];
+
+        j = 0;
+        for (Macrodescriptor::iterator MMIter = MMacrodescriptors[*SIter].begin(); MMIter != MMacrodescriptors[*SIter].end(); ++MMIter)
+        {
+            TrainData.at<float>(i,j) = *MMIter;
+            j++;
+        }
+        i++;
+    }
+
+    i = 0;
+    for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
+    {
+        TestLabel.at<float>(i,0) = Labels[*SIter];
+
+        j = 0;
+        for (Macrodescriptor::iterator MMIter = MMacrodescriptors[*SIter].begin(); MMIter != MMacrodescriptors[*SIter].end(); ++MMIter)
+        {
+            TestData.at<float>(i,j) = *MMIter;
+            j++;
+        }
+        i++;
+    }
+
+    CvSVM SVM_;
+    SVM_.train(TrainData, TrainLabel, Mat(), Mat(), Params);
+
+    SVM_.predict(TestData,PredictedLabel);
+
+    for (i = 0; i < TestData.rows; ++i)
+    {
+        CMatrixResults_[TestData.at<float>(0,i)-1][PredictedLabel.at<float>(0,i)-1]++;
+    }
+
+    PredictedLabel = (PredictedLabel == TestData) / 255;
+    Accuracy_ = mean(PredictedLabel.col(0))[0];
 }
+
+
+float SVM::GetAccuracy(){ return (Accuracy_); }
+ConfusionMatrix SVM::GetConfusionMatrix() { return (CMatrixResults_); }
