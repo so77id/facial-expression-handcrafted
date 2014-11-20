@@ -19,6 +19,9 @@ target_link_libraries(BoWBuilderMain ${OpenCV_LIBS})
 add_executable(kFoldCrossValidationMain "cpp/kFoldCrossValidationMain" "header/utility.cpp")
 target_link_libraries(kFoldCrossValidationMain ${OpenCV_LIBS})
 
+add_executable(kFoldCrossValidationMain_new "cpp/kFoldCrossValidationMain_new" "header/utility.cpp")
+target_link_libraries(kFoldCrossValidationMain_new ${OpenCV_LIBS})
+
 add_executable(kFoldCreatorFiles "cpp/kFoldCreatorFiles" "header/utility.cpp")
 target_link_libraries(kFoldCreatorFiles ${OpenCV_LIBS})
 
@@ -33,4 +36,3 @@ target_link_libraries(SVMTestValues ${OpenCV_LIBS})
 
 add_executable(VisualRaysTracker "cpp/VisualRaysTracker" "header/utility.cpp")
 target_link_libraries(VisualRaysTracker ${OpenCV_LIBS})
-

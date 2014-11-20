@@ -4,7 +4,7 @@
 
 using namespace cv;
 using namespace utility;
-
+/*
 template<typename _Tp>
 void ldn::LDN_(const cv::Mat& src, cv::Mat& dst, cv::Mat& mask){
 
@@ -135,7 +135,7 @@ void ldn::LDN(const cv::Mat& src, cv::Mat& dst, cv::Mat& mask)
 
 
 
-/*
+
 void ldn::LDN(const cv::Mat& src, cv::Mat& dst, cv::Mat& mask) {
     switch(src.type()) {
         case CV_8SC1: ldn::LDN_<char>(src, dst, mask); break;
@@ -146,8 +146,8 @@ void ldn::LDN(const cv::Mat& src, cv::Mat& dst, cv::Mat& mask) {
         case CV_32FC1: ldn::LDN_<float>(src, dst, mask); break;
         case CV_64FC1: ldn::LDN_<double>(src, dst, mask); break;
     }
-}*/
+}
 
 cv::Mat ldn::LDN(const cv::Mat& src, cv::Mat& mask) { cv::Mat dst; ldn::LDN(src, dst, mask); return dst; }
-
+*/
 #endif

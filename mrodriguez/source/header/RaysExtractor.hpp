@@ -110,7 +110,8 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
 
         std::cout << "--------------------------------------------------\n\n";
     }
-/* fin debugin*/
+// fin debugin
+ */
 
 
     for (iws = iwsMin; iws < iwsMax; ++iws)

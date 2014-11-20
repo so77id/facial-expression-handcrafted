@@ -56,6 +56,7 @@ class MacroDescriptorBuilder
 
 MacroDescriptorBuilder::MacroDescriptorBuilder(){}
 
+
 MapMacrodescriptors MacroDescriptorBuilder::Run(const string &OutFileName,DataSet& DS, VideoRayFlux& VideosRays, const size_t nClusters, const TermCriteria& tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001), const size_t retries = 1, const size_t flags = KMEANS_PP_CENTERS)
 {
     ofstream Out(OutFileName);
@@ -84,7 +85,7 @@ MapMacrodescriptors MacroDescriptorBuilder::Run(const string &OutFileName,DataSe
 MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& VideosRays, const size_t nClusters, const TermCriteria& tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001), const size_t retries = 1, const size_t flags = KMEANS_PP_CENTERS)
 {
     int RaysSize = VideosRays.begin()->second.size();
-    int i,j,id;
+    size_t i,j,id;
     //int sizeDataSet = DS.first.size() + DS.second.size();
     cv::Mat TrainData(DS.first.size(),RaysSize,CV_32F);
     cv::Mat TestData(DS.second.size(),RaysSize,CV_32F);

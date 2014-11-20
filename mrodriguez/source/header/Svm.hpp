@@ -42,25 +42,25 @@ using namespace utility;
 */
 
 
-class SVM
+class Svm
 {
     private:
-        float Accuracy_;
+        double Accuracy_;
         ConfusionMatrix CMatrixResults_;
     public:
-        SVM();
-        ~SVM();
-        void Run(DataSet&, MapLabels&, MapMacrodescriptors&, const CvSVMParams&, const int );
+        Svm();
+        ~Svm();
+        void Run(DataSet&, MapLabels&, MapMacrodescriptors&, const CvSVMParams&, const size_t );
         ConfusionMatrix GetConfusionMatrix();
         double GetAccuracy();
 };
 
-SVM::SVM(){}
-SVM::~SVM(){}
+Svm::Svm(){}
+Svm::~Svm(){}
 
-void SVM::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescriptors, const CvSVMParams &Params, const size_t nClass = 6 )
+void Svm::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescriptors, const CvSVMParams &Params, const size_t nClass = 6 )
 {
-    int MacroSize = MapMacrodescriptors.begin()->second.size();
+    int MacroSize = MMacrodescriptors.begin()->second.size();
     size_t i,j;
     cv::Mat TrainData(DS.first.size(),MacroSize,CV_32F);
     cv::Mat TrainLabel(DS.first.size(),1,CV_32F);
@@ -68,9 +68,9 @@ void SVM::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
     cv::Mat TestLabel(DS.second.size(),1,CV_32F);
     cv::Mat PredictedLabel(DS.second.size(),1,CV_32F);
 
-    for (int i = 0; i < NClass; ++i)
+    for (i = 0; i < nClass; ++i)
     {
-        CMatrixResults_.push_back(std::move(vector<float>(NClass,0.0)) );
+        CMatrixResults_.push_back(std::move(vector<float>(nClass,0.0)) );
     }
 
     i = 0;
@@ -106,9 +106,9 @@ void SVM::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
 
     SVM_.predict(TestData,PredictedLabel);
 
-    for (i = 0; i < TestData.rows; ++i)
+    for (int ii = 0; ii < TestData.rows; ++ii)
     {
-        CMatrixResults_[TestData.at<float>(0,i)-1][PredictedLabel.at<float>(0,i)-1]++;
+        CMatrixResults_[TestData.at<float>(0,ii)-1][PredictedLabel.at<float>(0,ii)-1]++;
     }
 
     PredictedLabel = (PredictedLabel == TestData) / 255;
@@ -116,5 +116,5 @@ void SVM::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
 }
 
 
-float SVM::GetAccuracy(){ return (Accuracy_); }
-ConfusionMatrix SVM::GetConfusionMatrix() { return (CMatrixResults_); }
+double Svm::GetAccuracy(){ return (Accuracy_); }
+ConfusionMatrix Svm::GetConfusionMatrix() { return (CMatrixResults_); }

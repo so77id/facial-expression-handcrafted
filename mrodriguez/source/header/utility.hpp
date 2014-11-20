@@ -26,6 +26,8 @@ namespace utility{
 	typedef vector<int> Macrodescriptor; // Macrodescriptor
 	typedef vector<Macrodescriptor> ListMacrodescriptors; //Vector de macrodescriptores
 	typedef map<int,Macrodescriptor> MapMacrodescriptors; //Mapa de macrodescriptores
+	typedef map<int, MapMacrodescriptors> kFoldMapMacrodescriptors; // first-> indice del kfold, second -> Macrodescriptores de la instancia
+
 
 	typedef vector<int> ListLabels; //Lista de labels de los macrodescriptores
 	typedef map<int,int> MapLabels; //Mapa id video, label
