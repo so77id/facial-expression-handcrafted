@@ -108,19 +108,20 @@ void Svm::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
     CvSVM SVM_;
     SVM_.train(TrainData, TrainLabel, Mat(), Mat(), Params);
 
-    cout << "PRediciendo" << endl;
+    cout << "Pr./ediciendo" << endl;
     SVM_.predict(TestData,PredictedLabel);
 
     cout << "Calculando la matrix de confusion" << endl;
-    for (int ii = 0; ii < TestData.rows; ++ii)
+
+    for (int ii = 0; ii < TestLabel.rows; ++ii)
     {
-        cout << "\t en el (i,j)" << (TestData.at<float>(0,ii) - 1) << " , " << (PredictedLabel.at<float>(0,ii) -1) << endl;
-        CMatrixResults_[TestData.at<float>(0,ii)-1][PredictedLabel.at<float>(0,ii)-1]++;
+        cout << "\t en el (i,j)" << (TestLabel.at<float>(0,ii) - 1) << " , " << (PredictedLabel.at<float>(0,ii) -1) << endl;
+        CMatrixResults_[TestLabel.at<float>(0,ii)-1][PredictedLabel.at<float>(0,ii)-1]++;
     }
 
     cout << "Calculando accuracy"<< endl;
 
-    PredictedLabel = (PredictedLabel == TestData) / 255;
+    PredictedLabel = (PredictedLabel == TestLabel) / 255;
     Accuracy_ = mean(PredictedLabel.col(0))[0];
     cout << "Accuracy: " << Accuracy_ << endl;
 }
