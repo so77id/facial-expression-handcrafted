@@ -204,11 +204,13 @@ void kFoldCrossValidation::RunAll(const size_t nClusters, const CvSVMParams &Par
 
     cout << "Accuracy: " << Accuracy_ << endl;
 
+    cout << "Matriz de confusion" << endl;
+
     for (i = 0; i < CMatrixResults_.size(); ++i)
     {
         for (j = 0; j < CMatrixResults_[i].size(); ++j)
         {
-           cout << CMatrixResults_[i][j] << "\t" << endl;
+           cout << CMatrixResults_[i][j] << "\t";
         }
         cout << endl;
     }

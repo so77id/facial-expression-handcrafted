@@ -108,14 +108,14 @@ void Svm::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescrip
     CvSVM SVM_;
     SVM_.train(TrainData, TrainLabel, Mat(), Mat(), Params);
 
-    cout << "Pr./ediciendo" << endl;
+    cout << "Prediciendo" << endl;
     SVM_.predict(TestData,PredictedLabel);
 
     cout << "Calculando la matrix de confusion" << endl;
 
     for (int ii = 0; ii < TestLabel.rows; ++ii)
     {
-        cout << "\t en el (i,j)" << (TestLabel.at<float>(0,ii) - 1) << " , " << (PredictedLabel.at<float>(0,ii) -1) << endl;
+        //cout << "\t en el (i,j)" << (TestLabel.at<float>(0,ii) - 1) << " , " << (PredictedLabel.at<float>(0,ii) -1) << endl;
         CMatrixResults_[TestLabel.at<float>(0,ii)-1][PredictedLabel.at<float>(0,ii)-1]++;
     }
 
