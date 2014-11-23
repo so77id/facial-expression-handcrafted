@@ -79,6 +79,8 @@ MapMacrodescriptors MacroDescriptorBuilder::Run(const string &OutFileName,DataSe
           }
     }
 
+    Out.close();
+
     return(MMacros);
 }
 

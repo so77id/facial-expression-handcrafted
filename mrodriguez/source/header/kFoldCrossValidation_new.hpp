@@ -57,13 +57,28 @@ class kFoldCrossValidation
         ConfusionMatrix CMatrixResults_;
 
         kFoldMapMacrodescriptors kMMacros;
+
+        bool LoadKfolds(const string&);
+        bool LoadLabels(const string&);
+        bool LoadMicroDescriptors(const string&);
+        bool LoadMacroDescriptors(const string&);
     public:
         kFoldCrossValidation();
         ~kFoldCrossValidation();
-        bool Load(const string&, const string&, const string&);
+
+        bool LoadAll(const string&, const string&, const string&);
+
+        bool LoadForBuildMacros(const string&, const string&);
+        bool LoadForSVM(const string&,const string&, const string&);
+
         void RunAll(const size_t, const CvSVMParams &, const size_t, const TermCriteria& , const size_t, const size_t);
+
+        bool RunMacroDescriptorBuilderkFold(string&, const size_t , const TermCriteria& tc, const size_t, const size_t);
         void RunMacroDescriptorBuilderkFold(const size_t , const TermCriteria& tc, const size_t, const size_t);
-        void RunSVM(const CvSVMParams&, const size_t);
+
+        bool RunSVM(const CvSVMParams&, const size_t);
+        double RunSVM(const string&, const CvSVMParams&, const size_t);
+
         double GetAccuracy();
         ConfusionMatrix GetConfusionMatrix();
 };
@@ -76,80 +91,75 @@ kFoldCrossValidation::kFoldCrossValidation()
 
 kFoldCrossValidation::~kFoldCrossValidation(){}
 
-double kFoldCrossValidation::GetAccuracy() { return(Accuracy_); }
+double kFoldCrossValidation::GetAccuracy() { return((Accuracy_ / (MDS.size()*1.0) ) * 100 ); }
 
 ConfusionMatrix kFoldCrossValidation::GetConfusionMatrix() { return (CMatrixResults_); }
 
-bool kFoldCrossValidation::Load(const string& MicroDescriptorFileName, const string& kFoldPath, const string& LabelsFileName){
+bool kFoldCrossValidation::LoadMacroDescriptors(const string& MacroDescriptrosConfigFileName)
+{
+    int nClusters, video_id, cluster, kfold_id, i;
+    string buffer;
+    Macrodescriptor NewMacro;
+    MapMacrodescriptors NewMapMacro;
+    ifstream MacroConfigFile(MacroDescriptrosConfigFileName);
+    ifstream MacroFile;
 
-    int video_id, video_class, kfold_id, frames;
-    int RaySize, kFoldSize;
-    int i;
-    float dx,dy;
-    string trainName,testName, buffer;
-    RayFlux NewRay;
-
-    ifstream kFoldConfigFile       (kFoldPath + "kFold_config.txt");
-    ifstream MicroDescriptorFile (MicroDescriptorFileName);
-    ifstream LabelFile                (LabelsFileName);
-    ifstream trainFile, testFile;
-
-    if(!kFoldConfigFile.good() || !MicroDescriptorFile.good() || !LabelFile.good())
+    if(!MacroConfigFile.good())
     {
-        cout << "Error al abrir alguno de los archivos" << endl;
+        cout << "Error al cargar el archivo con la configuracion de los macrodescriptores" << endl;
         return(false);
     }
-//Cargando Labels
-    cout << "cargando labels" << endl;
 
-    while(! LabelFile.eof())
+    while(!MacroConfigFile.eof())
     {
-        LabelFile >> buffer >> video_id >> video_class >> frames;
-        VideoLabels[video_id] = video_class;
+        MacroConfigFile >> buffer >> kfold_id;
+
+        //cout << "cargando: " << buffer << endl;
+
+        MacroFile.open(buffer);
+        if(!MacroFile.good())
+        {
+            cout << "Error al abrir el archivo " << buffer << endl;
+            return(false);
+        }
+
+        NewMapMacro.clear();
+
+        MacroFile >> nClusters;
+        while(!MacroFile.eof())
+        {
+            NewMacro.clear();
+
+            MacroFile >> video_id;
+            //cout << "\t Cargando el video: " << video_id << endl;
+            for (i = 0; i < nClusters; ++i)
+            {
+                MacroFile >> cluster;
+                NewMacro.push_back(cluster);
+            }
+            NewMapMacro[video_id] = NewMacro;
+        }
+        kMMacros[kfold_id] = NewMapMacro;
+
+        MacroFile.close();
     }
 
+    return(true);
+}
 
-//Cargando rayos
-    cout << "cargando rayos" << endl;
+bool kFoldCrossValidation::LoadKfolds(const string& kFoldPath)
+{
+    int kFoldSize, i, video_class, video_id, frames, kfold_id;
+    string trainName,testName, buffer;
 
-    getline(MicroDescriptorFile,buffer);
-    RaySize = std::stoi(buffer);
+    ifstream kFoldConfigFile    (kFoldPath + "kFold_config.txt");
+    ifstream trainFile, testFile;
 
-
-
-    cout << "RaySize: " << RaySize << endl;
-    while(! MicroDescriptorFile.eof() )
+    if(!kFoldConfigFile.good())
     {
-        getline(MicroDescriptorFile,buffer);
-        std::vector<string> Vbuffer = utility::split(buffer," ");
-
-        //ray_id     = std::stoi(Vbuffer[0]);
-        video_id  = std::stoi(Vbuffer[1]);
-        //roi          = std::stoi(Vbuffer[2]);
-
-//        MicroDescriptorFile >> ray_id >> video_id >> roi >> frames;
-
-        NewRay.clear();
-        //cout << "Cargando el rayo " << ray_id << " video_id: " << video_id << endl;
-
-        for(i = 3; i < RaySize +3;)
-        {
-            dx = std::stof(Vbuffer[i++]);
-            dy = std::stof(Vbuffer[i++]);
-            NewRay.push_back(std::make_pair(dx,dy));
-        }
-/*
-        for (i = 3; i < HalfSize; ++i)
-        {
-            MicroDescriptorFile >> dx >> dy;
-            NewRay.push_back(make_pair(dx,dy));
-        }
-*/
-        VideosRays[video_id].push_back(std::move(NewRay));
+        cout << "Error al abrir el archivo de configuracion de kfoldpath: " << kFoldPath << endl;
+        return(false);
     }
-
-
-//Cargando K folds
 
     cout << "cargando kfold" << endl;
 
@@ -170,20 +180,160 @@ bool kFoldCrossValidation::Load(const string& MicroDescriptorFileName, const str
         while(!trainFile.eof())
         {
             trainFile >> buffer >> video_id >> video_class >> frames;
-            MDS[i].first.push_back(video_id);
+            MDS[kfold_id].first.push_back(video_id);
         }
 
         while(!testFile.eof())
         {
             testFile >> buffer >> video_id >> video_class >> frames;
-            MDS[i].second.push_back(video_id);
+            MDS[kfold_id].second.push_back(video_id);
         }
 
         trainFile.close();
         testFile.close();
-
     }
 
+    return(true);
+}
+
+bool kFoldCrossValidation::LoadLabels(const string& LabelsFileName)
+{
+    int video_id, video_class, frames;
+    string buffer;
+
+    ifstream LabelFile(LabelsFileName);
+
+    if(!LabelFile.good())
+    {
+        cout << "Error al abrir el archivo de labels: " << LabelsFileName << endl;
+        return(false);
+    }
+
+    while(! LabelFile.eof())
+    {
+        LabelFile >> buffer >> video_id >> video_class >> frames;
+        VideoLabels[video_id] = video_class;
+    }
+
+    return(true);
+}
+
+bool kFoldCrossValidation::LoadMicroDescriptors(const string& MicroDescriptorFileName)
+{
+    int RaySize, video_id, i;
+    float dx,dy;
+    string buffer;
+    RayFlux NewRay;
+
+    ifstream MicroDescriptorFile (MicroDescriptorFileName);
+
+    if(!MicroDescriptorFile.good())
+    {
+        cout << "Error al abrir el archivo de microdescritores" << endl;
+        return(false);
+    }
+
+    getline(MicroDescriptorFile,buffer);
+    RaySize = std::stoi(buffer);
+
+    //cout << "RaySize: " << RaySize << endl;
+    while(! MicroDescriptorFile.eof() )
+    {
+        getline(MicroDescriptorFile,buffer);
+        std::vector<string> Vbuffer = utility::split(buffer," ");
+
+        video_id  = std::stoi(Vbuffer[1]);
+
+        NewRay.clear();
+        //cout << "Cargando el rayo " << ray_id << " video_id: " << video_id << endl;
+
+        for(i = 3; i < RaySize +3;)
+        {
+            dx = std::stof(Vbuffer[i++]);
+            dy = std::stof(Vbuffer[i++]);
+            NewRay.push_back(std::make_pair(dx,dy));
+        }
+
+        VideosRays[video_id].push_back(std::move(NewRay));
+    }
+
+    return(true);
+}
+
+
+bool kFoldCrossValidation::LoadForBuildMacros(const string& MicroDescriptorFileName, const string& kFoldPath)
+{
+    //Cargando rayos
+    cout << "cargando rayos" << endl;
+    if(!LoadMicroDescriptors(MicroDescriptorFileName))
+    {
+        State = false;
+        return(State);
+    }
+    //Cargando K folds
+    cout << "cargando kfold" << endl;
+    if(!LoadKfolds(kFoldPath))
+    {
+        State = false;
+        return (State);
+    }
+    //Retorno
+    State = true;
+    return(State);
+}
+
+bool kFoldCrossValidation::LoadForSVM(const string& MacroDescriptrosConfigFileName,const string& kFoldPath, const string& LabelsFileName)
+{
+    //cargando Macro
+    cout << "cargando macrodescriptores" << endl;
+    if(!LoadMacroDescriptors(MacroDescriptrosConfigFileName))
+    {
+        State = false;
+        return(State);
+    }
+    //Cargando K folds
+    cout << "cargando kfold" << endl;
+    if(!LoadKfolds(kFoldPath))
+    {
+        State = false;
+        return (State);
+    }
+    //Cargando Labels
+    cout << "cargando labels" << endl;
+    if(!LoadLabels(LabelsFileName))
+    {
+        State = false;
+        return (State);
+    }
+    //Retorno
+    State = true;
+    return(State);
+}
+
+bool kFoldCrossValidation::LoadAll(const string& MicroDescriptorFileName, const string& kFoldPath, const string& LabelsFileName)
+{
+    //Cargando Labels
+    cout << "cargando labels" << endl;
+    if(!LoadLabels(LabelsFileName))
+    {
+        State = false;
+        return (State);
+    }
+    //Cargando rayos
+    cout << "cargando rayos" << endl;
+    if(!LoadMicroDescriptors(MicroDescriptorFileName))
+    {
+        State = false;
+        return(State);
+    }
+    //Cargando K folds
+    cout << "cargando kfold" << endl;
+    if(!LoadKfolds(kFoldPath))
+    {
+        State = false;
+        return (State);
+    }
+    //Retorno
     State = true;
     return(State);
 }
@@ -198,22 +348,57 @@ void kFoldCrossValidation::RunAll(const size_t nClusters, const CvSVMParams &Par
     }
 
     size_t i,j;
+    int sum;
 
     RunMacroDescriptorBuilderkFold(nClusters,tc,retries,flags);
     RunSVM(Params,nClass);
 
-    cout << "Accuracy: " << Accuracy_ << endl;
+    cout << "Accuracy: " << ( Accuracy_  / MDS.size() ) << endl;
 
     cout << "Matriz de confusion" << endl;
 
-    for (i = 0; i < CMatrixResults_.size(); ++i)
+     for (i = 0; i < CMatrixResults_.size(); ++i)
     {
+        sum = std::accumulate(CMatrixResults_[i].begin(), CMatrixResults_[i].end(), 0.0);
         for (j = 0; j < CMatrixResults_[i].size(); ++j)
         {
-           cout << CMatrixResults_[i][j] << "\t";
+           cout  << (j == 0 ? "" : ",") << ( sum > 0 ?  ((CMatrixResults_[i][j] / (sum*1.0)) * 100) : 0);
         }
         cout << endl;
     }
+}
+
+bool kFoldCrossValidation::RunMacroDescriptorBuilderkFold(string& MacroPath, const size_t nClusters, const TermCriteria& tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001), const size_t retries = 1, const size_t flags = KMEANS_PP_CENTERS)
+{
+    if(!State)
+    {
+        cout << "Los datos no se cargaron correctamente" << endl;
+        return (false);
+    }
+
+    ofstream MacroConfigFile(MacroPath + "macro_kfold_config.txt");
+    if(!MacroConfigFile.good())
+    {
+        cout << "No se pudo crear el archivo de configuracion de macros para kfold en la ruta: " << MacroPath << endl;
+        return (false);
+    }
+
+    cout << "Corriendo el kfold de macro para:" << endl;
+
+    int i = 0;
+    string FileName = "";
+    for (MapDataSetIter MDIter = MDS.begin(); MDIter != MDS.end(); ++MDIter)
+    {
+        cout << "ejemplo: " << ++i << endl;
+        FileName = MacroPath + "Macro_kfold_" + to_string(MDIter->first) + ".txt";
+
+        MacroDescriptorBuilder MDB;
+        kMMacros[MDIter->first] = std::move(MDB.Run(FileName,MDIter->second,VideosRays, nClusters, tc, retries, flags));
+        MacroConfigFile << (i == 1 ? "" : "\n") << FileName << " "  << MDIter->first;
+    }
+
+    MacroConfigFile.close();
+    return(true);
 
 }
 
@@ -237,16 +422,53 @@ void kFoldCrossValidation::RunMacroDescriptorBuilderkFold(const size_t nClusters
     }
 }
 
-void kFoldCrossValidation::RunSVM(const CvSVMParams &Params, const size_t nClass = 6 )
+
+double kFoldCrossValidation::RunSVM(const string& ConfusionMatrixFileName, const CvSVMParams& Params, const size_t nClass = 6)
+{
+    if(RunSVM(Params,nClass))
+    {
+        size_t i, j;
+        int sum;
+
+        ofstream out(ConfusionMatrixFileName);
+        if(!out.good())
+        {
+            cout << "No se pudo abrir el archivo para guardar la matriz de confusion" << endl;
+        }
+
+        for (i = 0; i < CMatrixResults_.size(); ++i)
+        {
+            sum = std::accumulate(CMatrixResults_[i].begin(), CMatrixResults_[i].end(), 0.0);
+            for (j = 0; j < CMatrixResults_[i].size(); ++j)
+            {
+               out  << (j == 0 ? "" : ",") << ( sum > 0 ?  ((CMatrixResults_[i][j] / (sum*1.0)) * 100) : 0);
+            }
+            out << endl;
+        }
+
+        out.close();
+    }
+    else
+    {
+        cout << "No se pudo correr el SVM" << endl;
+    }
+
+    return(GetAccuracy());
+}
+
+
+bool kFoldCrossValidation::RunSVM(const CvSVMParams &Params, const size_t nClass = 6 )
 {
     size_t i,j;
 
     if(!State)
     {
         cout << "Los datos no se cargaron correctamente" << endl;
-        return;
+        return (false);
     }
 
+    Accuracy_ = 0.0;
+    CMatrixResults_.clear();
     for (i = 0; i < nClass; ++i)
     {
         CMatrixResults_.push_back(std::move(vector<float>(nClass,0.0)) );
@@ -271,4 +493,6 @@ void kFoldCrossValidation::RunSVM(const CvSVMParams &Params, const size_t nClass
             }
         }
     }
+
+    return(true);
 }

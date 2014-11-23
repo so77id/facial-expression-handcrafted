@@ -22,6 +22,9 @@ target_link_libraries(kFoldCrossValidationMain ${OpenCV_LIBS})
 add_executable(kFoldCrossValidationMain_new "cpp/kFoldCrossValidationMain_new" "header/utility.cpp")
 target_link_libraries(kFoldCrossValidationMain_new ${OpenCV_LIBS})
 
+add_executable(MacroDescriptorBuilderMain "cpp/MacroDescriptorBuilderMain" "header/utility.cpp")
+target_link_libraries(MacroDescriptorBuilderMain ${OpenCV_LIBS})
+
 add_executable(kFoldCreatorFiles "cpp/kFoldCreatorFiles" "header/utility.cpp")
 target_link_libraries(kFoldCreatorFiles ${OpenCV_LIBS})
 
