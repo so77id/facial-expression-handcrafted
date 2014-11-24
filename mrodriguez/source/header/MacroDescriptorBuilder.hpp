@@ -42,10 +42,11 @@ using namespace utility;
 class MacroDescriptorBuilder
 {
     private:
+        bool debug_;
         cv::Mat Vocabulary;
 
     public:
-        MacroDescriptorBuilder();
+        MacroDescriptorBuilder(const bool);
         //Dataset, filename in, filename out
         MapMacrodescriptors Run(DataSet&, VideoRayFlux&, const size_t, const TermCriteria&, const size_t, const size_t);
         MapMacrodescriptors Run(const string&,DataSet&, VideoRayFlux&, const size_t, const TermCriteria&, const size_t, const size_t);
@@ -54,8 +55,7 @@ class MacroDescriptorBuilder
         //ListMacrodescriptors BuildMacrodescriptors();
 };
 
-MacroDescriptorBuilder::MacroDescriptorBuilder(){}
-
+MacroDescriptorBuilder::MacroDescriptorBuilder(const bool debug = false){ debug_ = debug; }
 
 MapMacrodescriptors MacroDescriptorBuilder::Run(const string &OutFileName,DataSet& DS, VideoRayFlux& VideosRays, const size_t nClusters, const TermCriteria& tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001), const size_t retries = 1, const size_t flags = KMEANS_PP_CENTERS)
 {
@@ -86,29 +86,36 @@ MapMacrodescriptors MacroDescriptorBuilder::Run(const string &OutFileName,DataSe
 
 MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& VideosRays, const size_t nClusters, const TermCriteria& tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001), const size_t retries = 1, const size_t flags = KMEANS_PP_CENTERS)
 {
+
     size_t RaysSize = VideosRays.begin()->second.begin()->size()*2;
     size_t TrainSize = 0, TestSize = 0;
 
+    //cout << "Imprimiendo dataset de entrenamiento: ";
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
         TrainSize += VideosRays[*SIter].size();
-    }
+        //cout << *SIter << " | ";
+    }//cout << endl;
 
+
+
+    //cout << "Imprimiendo dataset de Test: ";
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
     {
         TestSize += VideosRays[*SIter].size();
-    }
+        //cout << *SIter << " | ";
+    }//cout << endl;
 
     size_t i,j,id;
     //int sizeDataSet = DS.first.size() + DS.second.size();
     cv::Mat TrainData(TrainSize,RaysSize,CV_32F);
     cv::Mat TestData(TestSize,RaysSize,CV_32F);
-//    cv::Mat Vocabulary;
+    //    cv::Mat Vocabulary;
     MapMacrodescriptors MMacros;
-    cout << "raysize: " << RaysSize << endl;
-    cout << "RayCount" << TestSize + TrainSize << endl;
+    if(debug_) cout << "raysize: " << RaysSize << endl;
+    if(debug_) cout << "RayCount" << TestSize + TrainSize << endl;
     //Creando matrix de train
-    cout << "Creando matrix de train" << endl;
+    if(debug_) cout << "Creando matrix de train" << endl;
     i = 0;
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
@@ -131,7 +138,7 @@ MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& Vide
     }
 //Arreglar igual que el train
     //Creando matrix de test
-    cout << "creadon matrix de test " << endl;
+    if(debug_) cout << "creadon matrix de test " << endl;
     i = 0;
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
     {
@@ -150,20 +157,20 @@ MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& Vide
     }
 
     //Extrayendo clusters
-    cout << "Extrayendo clusters" << endl;
+    if(debug_) cout << "Extrayendo clusters" << endl;
     BOWKMeansTrainer bowTrainer(nClusters, tc, retries,flags);
     bowTrainer.add(TrainData);
     Vocabulary = bowTrainer.cluster();
 
     //Match para el train
-    cout << "Matcheando" << endl;
+    if(debug_) cout << "Matcheando" << endl;
     cv::Ptr<cv::DescriptorMatcher> matcher = new cv::BFMatcher(cv::NORM_L2);
     matcher->add(std::vector<cv::Mat>(1, Vocabulary));
 
     vector<DMatch> matchesTrain;
     matcher->match(TrainData,matchesTrain);
 
-    cout << "Creando descriptores de entrenamiento" << endl;
+    if(debug_) cout << "Creando descriptores de entrenamiento" << endl;
     i = 0; // contador del descriptor actual
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
@@ -173,12 +180,20 @@ MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& Vide
             MMacros[*SIter][id]++;
             i++;
         }
+
+        size_t sum = std::accumulate(MMacros[*SIter].begin(),MMacros[*SIter].end(),0);
+
+        if( VideosRays[*SIter].size() != sum )
+        {
+            cout << "EL macrodescriptor del video: " << *SIter << " No cumple con la regla de tamaño, Cantidad de rayos: " << VideosRays[*SIter].size() << ", Suma del histograma: " << sum << endl;
+        }
+
     }
 
     vector<DMatch> matchesTest;
     matcher->match(TestData,matchesTest);
 
-    cout << "Creando descriptores de test" << endl;
+    if(debug_) cout << "Creando descriptores de test" << endl;
 
     i = 0; // contador del descriptor actual
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
@@ -189,6 +204,14 @@ MapMacrodescriptors MacroDescriptorBuilder::Run( DataSet& DS, VideoRayFlux& Vide
             MMacros[*SIter][id]++;
             i++;
         }
+
+        size_t sum = std::accumulate(MMacros[*SIter].begin(),MMacros[*SIter].end(),0);
+
+        if( VideosRays[*SIter].size() != sum )
+        {
+            cout << "EL macrodescriptor del video: " << *SIter << " No cumple con la regla de tamaño, Cantidad de rayos: " << VideosRays[*SIter].size() << ", Suma del histograma: " << sum << endl;
+        }
+
     }
 
     return(MMacros);

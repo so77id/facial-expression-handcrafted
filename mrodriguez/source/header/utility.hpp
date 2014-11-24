@@ -48,6 +48,7 @@ namespace utility{
 	pair<double,double> StandarDeviation( RayFlux & rayo);
 	float TransformLabels(int );
 
+
 	namespace lbp {
 		// templated functions
 		template <typename _Tp>

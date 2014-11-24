@@ -30,7 +30,7 @@ class MicroDescriptorBuilder
 		MicroDescriptorBuilder();
 		~MicroDescriptorBuilder();
 		bool isGood();
-		bool Build(const int,const bool);
+		bool Build(const int,const bool, int);
 		bool NormalizeMicroDescriptors(const string&, const string&, const int,const bool);
 };
 
@@ -58,7 +58,7 @@ bool MicroDescriptorBuilder<T>::isGood(){
 }
 
 template<typename T>
-bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Debug){
+bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Debug,  int WSsize = 0){
 	if(! isGood() ) return (false);
 
 	string VideoPath;
@@ -68,7 +68,7 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 
 	int descount = 1;
 
-	int WSsize = (SupportRegionSize*2)+1;
+	if( !WSsize) WSsize = (SupportRegionSize*2)+1;
 
 	while(!inFile_.eof()){
 

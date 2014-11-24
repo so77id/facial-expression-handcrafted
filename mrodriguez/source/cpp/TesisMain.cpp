@@ -3,14 +3,14 @@
 #include <fstream>
 #include <vector>
 #include "../header/MicroDescriptorBuilder.hpp"
-#include "../header/BoWBuilder.hpp"
-#include "../header/kFoldCrossValidation.hpp"
+#include "../header/kFoldCrossValidation_new.hpp"
 
 using namespace std;
 
-bool MicroDescriptorBuilderRun(const string RSVideoList, const string RSPathOut, vector<int> &RS){
+bool MicroDescriptorBuilderRun(const string RSVideoList, const string RSPathOut, vector<int> &RS, vector<int> &WS){
 
 
+    int sum = 0;
     string ConfigFileName = RSPathOut + "Config_microdescriptors_no_norm.txt";
     ofstream ConfigFile(ConfigFileName);
 
@@ -19,22 +19,40 @@ bool MicroDescriptorBuilderRun(const string RSVideoList, const string RSPathOut,
         return(false);
     }
 
-    ConfigFile << RS.size();
+    for (vector<int>::iterator i = RS.begin(); i != RS.end(); ++i)
+    {
+        for (std::vector<int>::iterator j = WS.begin(); j != WS.end(); ++j)
+        {
+             if((2*(*i) +1) <= *j) sum++;
+        }
+    }
+
+    ConfigFile << sum;
 
     for (vector<int>::iterator i = RS.begin(); i != RS.end(); ++i)
     {
-         string  FileName = RSPathOut + "microdescriptors_" + std::to_string(*i) + ".txt";
-         int RSsize = *i;
-
-         cout << "Comienza la extraccion de microdescriptores RSValue: " << RSsize << endl;
-         MicroDescriptorBuilder<uchar> MyMicroDescriptorBuilder(RSVideoList,FileName);
-         if (MyMicroDescriptorBuilder.Build(RSsize,false))
-         {
-            ConfigFile  << endl << FileName <<  " " << *i;
-         }
-         else
+        for (std::vector<int>::iterator j = WS.begin(); j != WS.end(); ++j)
         {
-            cout << "Error al crear los microdescriptores no norm con el valor " << *i << endl;
+            if((2*(*i) +1) > *j)
+            {
+                cout << "Se descarta la extracion con los parametros RS: " << *i << " WS: " << *j << endl;
+                continue;
+            }
+
+             string  FileName = RSPathOut + "microdescriptors_" + std::to_string(*i) + "_" +std::to_string(*j) + ".txt";
+             int RSsize = *i;
+             int WSsize = *j;
+
+             cout << "Comienza la extraccion de microdescriptores RSValue: " << RSsize << " WSValue: "<<  WSsize << endl;
+             MicroDescriptorBuilder<uchar> MyMicroDescriptorBuilder(RSVideoList,FileName);
+             if (MyMicroDescriptorBuilder.Build(RSsize,false,WSsize))
+             {
+                ConfigFile  << endl << FileName <<  " " << *i << " " << *j;
+             }
+             else
+            {
+                cout << "Error al crear los microdescriptores no norm con el valor " << *i << endl;
+            }
         }
     }
 
@@ -61,6 +79,7 @@ bool MicroDescriptorNormalize(const string &NPathNoNorm, const string &NPathNorm
 
     int NoNormFIlesSize;
     int RSValue;
+    int WSValue;
     string NoNormFileName;
     string NormFIleName;
 
@@ -76,21 +95,22 @@ bool MicroDescriptorNormalize(const string &NPathNoNorm, const string &NPathNorm
     {
         NoNormConfigFile >> NoNormFileName;
         NoNormConfigFile >> RSValue;
+        NoNormConfigFile >> WSValue;
 
          for (int j = Nmin; j <= Nmax; j+=Nstep )
         {
 
-            cout << "Comienza la Normalizacion  de microdescriptores RSValue: " << RSValue << "NValue: " << j << endl;
+            cout << "Comienza la Normalizacion  de microdescriptores RSValue: " << RSValue << " WSValue: " << WSValue << " NValue: " << j << endl;
 
-            NormFIleName = NPathNorm + "microdescriptors_" + std::to_string(RSValue) + "_" + std::to_string(j) + ".txt";
+            NormFIleName = NPathNorm + "microdescriptors_" + std::to_string(RSValue) + "_" + std::to_string(WSValue) + "_" + std::to_string(j) + ".txt";
             MicroDescriptorBuilder<uchar> MyMicroDescriptorBuilder;
             if (MyMicroDescriptorBuilder.NormalizeMicroDescriptors(NoNormFileName, NormFIleName, j, false ) )
             {
-                NormConfigFile  << endl << NormFIleName << " " << RSValue << " " << j;
+                NormConfigFile  << endl << NormFIleName << " " << RSValue << " " << WSValue << " " << j;
             }
             else
             {
-                cout << "Error al crear los microdescriptores norm con los valores RS:" << i << " N: " <<  j <<endl;
+                cout << "Error al crear los microdescriptores norm con los valores RS:" << RSValue << " WS: " << WSValue << " N: " <<  j <<endl;
             }
         }
     }
@@ -102,10 +122,16 @@ bool MicroDescriptorNormalize(const string &NPathNoNorm, const string &NPathNorm
 
 //=======================================================================
 
-bool BoWBuilderAll(const string &KPathNormFileName, const string &KPathMacro, const int Nmin, const int Nmax, const int Nstep){
+bool MacroDescriptorBuilder(const string &KPathNormFileName, const string &KPathMacro, const string& path_kfold, const int Nmin, const int Nmax, const int Nstep){
 
     ifstream KNormConfigFile(KPathNormFileName);
     ofstream KMacroConfilgFile(KPathMacro + "Config_macrodescriptors.txt");
+
+
+    //BOVW params
+    TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001);
+    size_t retries = 1;
+    size_t flags = KMEANS_PP_CENTERS;
 
     if(!KNormConfigFile.good()){
         cout << "No se logro abrir el archivo de configuracion de microdescriptores no normalizdos: " << KPathNormFileName << endl;
@@ -117,8 +143,8 @@ bool BoWBuilderAll(const string &KPathNormFileName, const string &KPathMacro, co
         return(false);
     }
 
-    int MacroFilesSize, RSValue, NValue;
-    string MacroFileName, MicroFileName;
+    int MacroFilesSize, RSValue, WSValue, NValue;
+    string MacroFoldName, MicroFileName, mkdirComand;
 
     KNormConfigFile >> MacroFilesSize;
 
@@ -126,107 +152,105 @@ bool BoWBuilderAll(const string &KPathNormFileName, const string &KPathMacro, co
 
     for (int i = 0; i < MacroFilesSize; ++i)
     {
-            KNormConfigFile >> MicroFileName >> RSValue >> NValue;
+            KNormConfigFile >> MicroFileName >> RSValue >> WSValue >> NValue;
             for (int j = Nmin; j <= Nmax; j+=Nstep )
             {
 
-                cout << "Comienza la creacion de macrodescriptores RSValue: " << RSValue << "NValue: " << NValue <<  " KValue: " << j << endl;
+                cout << "Comienza la creacion de macrodescriptores RSValue: " << RSValue  << " WSValue: " << WSValue  <<  " NValue: "<< NValue <<  " KValue: " << j << endl;
 
-                 MacroFileName = KPathMacro + "macrodescriptors_" + std::to_string(RSValue) + "_" + std::to_string(NValue) + "_" + std::to_string(j) + ".txt";
+                 MacroFoldName = KPathMacro + "macrodescriptors_" + std::to_string(RSValue) + "_" + std::to_string(WSValue) + "_" + std::to_string(NValue) + "_" + std::to_string(j) + "/";
 
-                 BoWBuilder MyBow(MicroFileName,MacroFileName,j);
-                 MyBow.LoadDescriptors();
-                 MyBow.ExtractClusters();
+                 mkdirComand = "mkdir " + MacroFoldName;
 
-                 //TERMINAR DESDE ACA REVISAR
-                 if(MyBow.BuildMacroDescriptors())
+                 if(system(mkdirComand.c_str()) )
                  {
-                    KMacroConfilgFile  << endl << MacroFileName << " " << RSValue << " " << NValue << " " << j;
+                    cout << "No se pudo crear la carpeta " << MacroFoldName << endl;
+                    return(false);
+                 }
+
+                 kFoldCrossValidation myKFCV;
+                 myKFCV.LoadForBuildMacros(MicroFileName,path_kfold);
+
+
+                 if(myKFCV.RunMacroDescriptorBuilderkFold(MacroFoldName,j , tc , retries , flags ))
+                 {
+                    KMacroConfilgFile  << endl << MacroFoldName << " " << RSValue << " " << WSValue << " " << NValue << " " << j;
                  }
                  else
                  {
-                    cout << "Error al crear los Error al crear los macrodescriptores con valor RS:" << RSValue << " N: " <<  NValue << " K: " << j << endl;
+                    cout << "Error al crear los Error al crear los macrodescriptores con valor RS:" << RSValue  << " WS: " << WSValue << " N: " <<  NValue << " K: " << j << endl;
                  }
             }
     }
+    KMacroConfilgFile.close();
     KNormConfigFile.close();
     return(true);
 }
 
 //=======================================================================
 
+bool  SVMkFoldCrossValidation(const string& SVMMacroFoldConfig, const string& SVMPathResult, const string& SVMvideoList, const string& SVMkFoldPath){
 
-bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SVMPathResult, const string SVMvideoList, const string SVMkFoldPath, const string SVMcsvPath){
+    string CMatrixPath = SVMPathResult + "ConfusionMatrix/";
+    string mkdir = "mkdir " + CMatrixPath;
 
-    ifstream MicroConfigFile(SVMPathMacroFileName);
-    ofstream ResultConfigFile(SVMPathResult + "Config_result_svm.txt");
-    ofstream CSVConfigFile(SVMcsvPath + "Config_CSV.txt");
+    if(system(mkdir.c_str()))
+    {
+        cout << "No se puede crear la carpeta de matrices de confusion en: " << SVMPathResult << endl;
+        return (false);
+    }
 
-    if(!MicroConfigFile.good()){
-        cout << "No se logro abrir el archivo de configuracion de macrodescriptores" << SVMPathMacroFileName << endl;
+    ifstream MacroFoldConfigFile(SVMMacroFoldConfig);
+    ofstream AccuracyFile(SVMPathResult + "Accuracy.csv");
+    ofstream CMConfigFile(CMatrixPath + "Config_CMatrix.txt");
+
+    if(!MacroFoldConfigFile.good()){
+        cout << "No se logro abrir el archivo de configuracion de la carpeta de macrodescriptores" << SVMMacroFoldConfig << endl;
         return(false);
     }
 
-    if(!ResultConfigFile.good()){
+    if(!AccuracyFile.good()){
         cout << "No se logro abrir el archivo de configuracion de resultados en la ruta: " << SVMPathResult << endl;
         return(false);
     }
 
 
-    if(!CSVConfigFile.good()){
-        cout << "No se logro abrir el archivo de configuracion de los archivos CSV en la ruta: " << SVMcsvPath << endl;
+    if(!CMConfigFile.good()){
+        cout << "No se logro abrir el archivo de configuracion de los archivos CSV en la ruta: " << CMatrixPath << endl;
         return(false);
     }
-
-    int RSValue, NValue, KValue;
-    int MacroListSize;
-    float Accuracy;
-    string MacroFileName;
-    string CSVFileName;
 
     CvSVMParams params;
     params.svm_type    = CvSVM::C_SVC;
     params.kernel_type = CvSVM::RBF;
     params.gamma = pow(2,-20); //2^-x ---> x elevado
     params.term_crit   = cvTermCriteria(CV_TERMCRIT_ITER, 100000, 1e-6);
-//variar gamma 0 -> -50
-// variar C 10^-6 -> 10^6 /// 0 -> 2 ... steap 0.1     ---- 0 -> 10 ... step 1 --- 10 -> 2000 ... step 10
-    MicroConfigFile >> MacroListSize;
-    ResultConfigFile << MacroListSize << endl;
-    CSVConfigFile << MacroListSize << endl;
+   //variar gamma 0 -> -50
+   // variar C 10^-6 -> 10^6 /// 0 -> 2 ... steap 0.1     ---- 0 -> 10 ... step 1 --- 10 -> 2000 ... step 10
+    int MacroFilesSize, RSValue, WSValue, NValue, KValue;
+    double Accuracy;
+    string MacroFoldName, CMFileName;
 
-    for (int i = 0; i < MacroListSize; ++i)
+    MacroFoldConfigFile >> MacroFilesSize;
+
+    for (int i = 0; i < MacroFilesSize; ++i)
     {
-        MicroConfigFile >> MacroFileName >> RSValue >> NValue >> KValue;
+        MacroFoldConfigFile >> MacroFoldName >> RSValue >> WSValue >> NValue >> KValue;
+        //cout << MacroFoldName << RSValue << WSValue << NValue << KValue << endl;
 
-         kFoldCrossValidation kFold(MacroFileName, SVMkFoldPath, SVMvideoList, params);
+        CMFileName = "CM_" + std::to_string(RSValue) + "_" + std::to_string(WSValue) + "_" + std::to_string(NValue) + "_" + std::to_string(KValue) + ".csv";
 
-        cout << "Voy a cargar los descriptores de RS/N/K" << RSValue << "/" << NValue << "/" << KValue << endl;
-        if( false == kFold.loadDescriptors()){
-            cout << "Error al cargar los descriptores de RS/N/K"  << RSValue << "/" << NValue << "/" << KValue << endl;
-            return(false);
-        }
+        kFoldCrossValidation myKFCV;
+        myKFCV.LoadForSVM(MacroFoldName + "macro_kfold_config.txt",SVMkFoldPath, SVMvideoList);
+        Accuracy = myKFCV.kFoldCrossValidation::RunSVM(CMatrixPath + CMFileName,params, 6);
 
-        Accuracy =  kFold.runKfoldCrossValidation();
-        cout << "\tAccuracy: " <<  Accuracy << endl;
-
-        CSVFileName =  SVMcsvPath + "ConfusionMatrix_" + std::to_string(RSValue) + "_" + std::to_string(NValue) + "_" + std::to_string(KValue) + ".csv";
-
-        ofstream CSVFile(CSVFileName);
-        if(! CSVFile.good()){
-            cout << "Error al abrir el archivo de matriz de confucion para los valores" << RSValue << " " << NValue << " "  << KValue << " "  << endl;
-        }
-        else{
-            kFold.GetConfusionMatrixCSV(CSVFile);
-            CSVFile.close();
-
-            CSVConfigFile << CSVFileName << RSValue << " " << NValue << " "  << KValue << " "  << Accuracy << endl;
-
-        }
-
-        ResultConfigFile << RSValue << " " << NValue << " "  << KValue << " "  << Accuracy << endl;
-
+        cout << "Accuracy: " << Accuracy << " RSValue: " << RSValue  << " WSValue: " << WSValue  <<  " NValue: "<< NValue <<  " KValue: " << KValue << endl;
+       AccuracyFile << (i == 0 ? "" : "\n") << RSValue << "\t" << WSValue << "\t" << NValue << "\t" << KValue << "\t" << Accuracy;
+        CMConfigFile << (i == 0 ? "" : "\n") << CMatrixPath + CMFileName;
     }
+
+    CMConfigFile.close();
+    AccuracyFile.close();
 
     return(true);
 }
@@ -237,6 +261,7 @@ bool  SVMkFoldCrossValidation(const string SVMPathMacroFileName, const string SV
 
 int main(int argc, char const *argv[])
 {
+
     if(argc < 2){
         cout << "Debes utilizar al menos un flag -RS, -N, -K o -h (para ayuda)" << endl;
         return (-1);
@@ -245,6 +270,7 @@ int main(int argc, char const *argv[])
     string RSVideoList;
     string RSPathOut;
     vector<int> RS;
+    vector<int> WS;
 
 
    string NPathNoNorm;
@@ -253,9 +279,10 @@ int main(int argc, char const *argv[])
 
    string KPathNormFileName;
    string KPathMacro;
+   string KPathKfold;
    int Kmin, Kmax, Kstep;
 
-   string SVMPathMacroFileName;
+   string SVMMacroFoldConfig;
    string SVMPathResult;
    string SVMvideoList;
    string SVMkFoldPath;
@@ -270,16 +297,17 @@ int main(int argc, char const *argv[])
         }
 
         if(Aux == "-RS"){
-            //<cantidad de pruebas> <video_list> <carpeta donde se alojan los ejemplos> <P1> <P2> ... <PN>
-            if(argc <= i + 1){
+            //<cantidad de RS> <cantidad de WS> <video_list> <carpeta donde se alojan los ejemplos> <P1> <P2> ... <PN>
+            if(argc <= i + 2){
                 cout << "Los parametros ingresados no corresponden a esta opcion (-RS) . Intente de nuevo" << endl;
                 return(-1);
             }
 
-            int NPruebas = std::atoi(argv[++i]);
-            cout << NPruebas << endl;
-
-            if(argc <= (i + 2 + NPruebas) ){
+            int RStest = std::atoi(argv[++i]);
+            cout << "RStest: " << RStest << endl;
+            int  WStest = std::atoi(argv[++i]);
+            cout << "WStest: " << WStest << endl;
+            if(argc <= (i + 2 + RStest + WStest) ){
                 cout << "Los parametros ingresados  no corresponden a esta opcion (-RS). Intente de nuevo" << endl;
                 return(-1);
             }
@@ -292,7 +320,7 @@ int main(int argc, char const *argv[])
 
 
 
-            for (int j = 0; j < NPruebas; j++)
+            for (int j = 0; j < RStest; j++)
             {
                     int AuxInt = std::atoi(argv[++i]);
                     if(AuxInt <=  0){
@@ -303,22 +331,32 @@ int main(int argc, char const *argv[])
                     RS.push_back(AuxInt);
             }
 
-            if (MicroDescriptorBuilderRun(RSVideoList,RSPathOut,RS) == true){
+            for (int j = 0; j < WStest; j++)
+            {
+                    int AuxInt = std::atoi(argv[++i]);
+                    if(AuxInt <=  0){
+                        cout << "Los parametros ingreados en los valores no corresponden a esta opcion (ingrese valores mayores que 0)" << endl;
+                        return(-1);
+                    }
+                    cout << AuxInt << endl;
+                    WS.push_back(AuxInt);
+            }
+
+            if (MicroDescriptorBuilderRun(RSVideoList,RSPathOut,RS,WS) == true){
                 cout << "Extraccion de microdescriptres completa" << endl;
             }
             else
             {
                 cout << "hubo un error en la extraccion de microdescriptores no normalizados :(" << endl;
             }
-
         }
+
         if(Aux == "-N"){
             //<archivo configuracion no normalizado> <path normalizado> <min value> <max value> <step>
             if(argc <= i + 5){
                 cout << "Los parametros ingresados no corresponden a esta opcion (-N). Intente de nuevo" << endl;
                 return(-1);
             }
-
 
             NPathNoNorm = string(argv[++i]);
             NPathNorm = string(argv[++i]);
@@ -332,51 +370,49 @@ int main(int argc, char const *argv[])
            else{
                 cout << "hubo un error en la normalizacion de microdescriptores :'(" << endl;
            }
-
-
         }
+
         if(Aux == "-K"){
-             //<archivo configuracion Normalizado> <path macrodescritptores> <min value> <max value> <step>
-            if(argc <= i + 5){
+            //<archivo configuracion Normalizado> <path macrodescritptores> <path kfold> <min value> <max value> <step>
+            if(argc <= i + 6){
                 cout << "Los parametros ingresados no corresponden a esta opcion (-K). Intente de nuevo" << endl;
                 return(-1);
             }
 
             KPathNormFileName = string(argv[++i]);
             KPathMacro = string(argv[++i]);
+            KPathKfold = string(argv[++i]);
             Kmin = atoi(argv[++i]);
             Kmax = atoi(argv[++i]);
             Kstep = atoi(argv[++i]);
 
-           if( BoWBuilderAll(KPathNormFileName, KPathMacro, Kmin, Kmax, Kstep) ){
+           if( MacroDescriptorBuilder(KPathNormFileName, KPathMacro, KPathKfold,Kmin, Kmax, Kstep) ){
                 cout << "Creacion de macrodescriptres completa" << endl;
            }
            else{
                 cout << "hubo un error en la creacion de macrodescriptores :((" << endl;
            }
-       }
+        }
 
-       if(Aux == "-SVM"){
-            //<archivo configuracion microdescriptores> <path resultados> <video_list> <kfold_path> <csv_path>
-             if(argc <= i + 5){
+        if(Aux == "-SVM"){
+            //<archivo configuracion de carpetas de macrodescriptores> <path svm results> <video_list> <kfold_path>
+             if(argc <= i + 4){
                     cout << "Los parametros ingresados no corresponden a esta opcion (-SVM). Intente de nuevo" << endl;
                     return(-1);
              }
 
-             SVMPathMacroFileName = string(argv[++i]);
+             SVMMacroFoldConfig = string(argv[++i]);
              SVMPathResult = string(argv[++i]);
              SVMvideoList = string(argv[++i]);
              SVMkFoldPath = string(argv[++i]);
-             SVMcsvPath = string(argv[++i]);
 
-
-             if( SVMkFoldCrossValidation(SVMPathMacroFileName,SVMPathResult,SVMvideoList,SVMkFoldPath,SVMcsvPath) ){
+             if( SVMkFoldCrossValidation(SVMMacroFoldConfig,SVMPathResult,SVMvideoList,SVMkFoldPath) ){
                 cout << "Etapa de obtencion de resultados  de SVM completa" << endl;
             }
             else{
                 cout << "Hubo un error en la obtencion de resultados de SVM" << endl;
             }
-       }
+        }
 
     }
 

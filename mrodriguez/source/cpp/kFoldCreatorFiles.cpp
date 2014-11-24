@@ -37,7 +37,7 @@ istream& operator>>(istream& is ,  Video &MyVideo)
 
 ostream& operator<<(ostream& os , Video &MyVideo)
 {
-	os << endl << MyVideo.VideoPath_    << " ";
+	os << MyVideo.VideoPath_    << " ";
 	os << MyVideo.VideoId_      << " ";
 	os << MyVideo.VideoClass_   << " ";
 	os << MyVideo.VideoCFrames_;
@@ -82,6 +82,7 @@ int main(int argc, char const *argv[])
 	while(!inList.eof()){
 		Video newVideo;
 		inList >> newVideo;
+		//cout << newVideo << endl;
 
 		MapVideos[newVideo.VideoClass_].push_back(newVideo);
 	}
@@ -115,6 +116,7 @@ int main(int argc, char const *argv[])
 		unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
 		std::default_random_engine generator(seed);
 
+		int a = 0,b = 0;
 		for (std::map<int,int>::iterator Map_it = ClassPercentil.begin(); Map_it != ClassPercentil.end(); ++Map_it)
 		{
 			//cout << "Sacando los de la clase: " << Map_it->first << endl;
@@ -133,9 +135,14 @@ int main(int argc, char const *argv[])
 
 				if(it == RAparition.end())
 				{
-				   j++;
 				   RAparition[number] = true;
-				   newTest << MapVideos[Map_it->first][number];
+				   newTest << (a == 0 ? "" : "\n");
+				   newTest << MapVideos[Map_it->first][number].VideoPath_ << " ";
+				   newTest << MapVideos[Map_it->first][number].VideoId_      << " ";
+			 	   newTest << MapVideos[Map_it->first][number].VideoClass_   << " ";
+				   newTest << MapVideos[Map_it->first][number].VideoCFrames_;
+				   j++;
+				   a++;
 				}
 
 		  	}
@@ -144,7 +151,13 @@ int main(int argc, char const *argv[])
 		  	{
 		  		map<int,bool>::iterator it = RAparition.find(k);
 		  		if(it == RAparition.end()){
-		  			newTrain << MapVideos[Map_it->first][k];
+		  			newTrain << (b == 0 ? "" : "\n");
+				   	newTrain << MapVideos[Map_it->first][k].VideoPath_ << " ";
+				   	newTrain << MapVideos[Map_it->first][k].VideoId_      << " ";
+			 	   	newTrain << MapVideos[Map_it->first][k].VideoClass_   << " ";
+				   	newTrain << MapVideos[Map_it->first][k].VideoCFrames_;
+		  			j++;
+		  			b++;
 		  		}
 		  	}
 		}
