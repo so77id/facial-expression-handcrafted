@@ -1,6 +1,7 @@
 #!/bin/bash
 # argv 1 -> nombre de la carpeta de testing ../testing/test_1/
 # argv 2 -> video_list.txt
+echo "Entrando a la carpeta build"
 cd build/
 rm -R $1
 mkdir $1
