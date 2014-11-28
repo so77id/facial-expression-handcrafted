@@ -23,10 +23,10 @@ class MicroDescriptorBuilder
 	private:
 		ifstream inFile_;
 		ofstream outFile_;
-		RaysExtractor RaysExtractor_;
+		RaysExtractor *RaysExtractor_;
 		size_t SizeRaysUniverse_;
 	public:
-		MicroDescriptorBuilder(const string&, const string&);
+		MicroDescriptorBuilder(const string&, const string&, const int);
 		MicroDescriptorBuilder();
 		~MicroDescriptorBuilder();
 		bool isGood();
@@ -35,10 +35,19 @@ class MicroDescriptorBuilder
 };
 
 template<typename T>
-MicroDescriptorBuilder<T>::MicroDescriptorBuilder(const string &inFile,const string &outFile){
+MicroDescriptorBuilder<T>::MicroDescriptorBuilder(const string &inFile,const string &outFile, const int RayExtractorType = 0){
 	inFile_ .open(inFile);
 	outFile_.open(outFile,ios::out | ios::binary);
 	SizeRaysUniverse_ = 0;
+	switch (RayExtractorType)
+	{
+		case 1:
+			RaysExtractor_ = new RaysExtractorOLBP();
+			break;
+		default:
+			RaysExtractor_ = new RaysExtractor();
+			break;
+	}
 }
 
 template<typename T>
@@ -81,7 +90,7 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 		if(Debug)
 			cout << "Extrayendo rayos del video " << VideoPath << endl;
 
-		MapRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize,WSsize));
+		MapRaysFlux Rays = std::move(RaysExtractor_->Extract(Video,SupportRegionSize,WSsize));
 
 		int ROI = 1;
 
@@ -131,7 +140,7 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 			NewRay.push_back(std::make_pair(dx,dy));
 		}
 
-		NewRay =  std::move(RaysExtractor_.Normalize(NewRay, SizeNorm));
+		NewRay =  std::move(RaysExtractor_->Normalize(NewRay, SizeNorm));
 
 		outFile_ << endl << Id << " " << VideoId << " " << ROI;
 

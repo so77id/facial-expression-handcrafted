@@ -39,3 +39,9 @@ target_link_libraries(SVMTestValues ${OpenCV_LIBS})
 
 add_executable(VisualRaysTracker "cpp/VisualRaysTracker" "header/utility.cpp")
 target_link_libraries(VisualRaysTracker ${OpenCV_LIBS})
+
+add_executable(PaintFaceWithClusters "cpp/PaintFaceWithClusters" "header/utility.cpp")
+target_link_libraries(PaintFaceWithClusters ${OpenCV_LIBS})
+
+add_executable(VideoTransformLBP "cpp/VideoTransformLBP" "header/utility.cpp")
+target_link_libraries(VideoTransformLBP ${OpenCV_LIBS})

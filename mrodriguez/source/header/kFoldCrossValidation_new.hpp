@@ -60,13 +60,14 @@ class kFoldCrossValidation
 
         kFoldMapMacrodescriptors kMMacros;
 
+    public:
+        kFoldCrossValidation(bool);
+        ~kFoldCrossValidation();
+
         bool LoadKfolds(const string&);
         bool LoadLabels(const string&);
         bool LoadMicroDescriptors(const string&);
         bool LoadMacroDescriptors(const string&);
-    public:
-        kFoldCrossValidation(bool);
-        ~kFoldCrossValidation();
 
         bool LoadAll(const string&, const string&, const string&);
         bool LoadForBuildMacros(const string&, const string&);
@@ -80,6 +81,9 @@ class kFoldCrossValidation
 
         double GetAccuracy();
         ConfusionMatrix GetConfusionMatrix();
+
+        VideoRayFlux GetVideosRays(){ return(VideosRays);}
+        MapDataSet GetMDS(){ return(MDS); }
 };
 
 kFoldCrossValidation::kFoldCrossValidation(bool debug = false)

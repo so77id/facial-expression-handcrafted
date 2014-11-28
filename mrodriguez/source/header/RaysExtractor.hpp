@@ -20,14 +20,14 @@ using namespace utility;
 
 class RaysExtractor
 {
-    private:
+    protected:
         bool debug;
         double MSE(const int, const int, const int, const int, const int, Mat&, Mat&);
         //pixel Match(const int, const int, const int, const int, const int, const int, Mat&, Mat&);
         pixel Match(const pixel, const int, const int, cv::Mat&, cv::Mat&);
     public:
         RaysExtractor(const bool);
-        MapRaysFlux Extract(VideoCapture &,const int, const int, const bool);
+        virtual MapRaysFlux Extract(VideoCapture &,const int, const int, const bool);
         RayFlux Normalize(const RayFlux rays,const int SizeNorm);
 };
 
@@ -58,7 +58,6 @@ double RaysExtractor::MSE(const int irs, const int jrs, const int iws, const int
         return ( std::sqrt(sum) );
 }
 
-
 pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsize, cv::Mat &frame0, cv::Mat &frame1)
 {
     int isr,jsr,iws,jws, iwsMin, jwsMin, iwsMax, jwsMax;
@@ -74,12 +73,12 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
     iwsMax      = Actual.first + ((WSsize-1) / 2) - ((SRsize -1)/2);
     jwsMax      = Actual.second + ((WSsize-1) / 2) - ((SRsize -1)/2) ;
 
-/* Buscar reglas para optimzar el proceso de busqueda sacando los if, para tener indices inteligentes al recorrer el WS
-    Calculos en el cuaderno.
-    iwsMin = iwsMin >= 0 ? iwsMin : 0;
-    jwsMin = jwsMin >= 0 ? jwsMin : 0;
-    iwsMax = iwsMax < frame1.rows ? iwsMax :
-*/
+    /* Buscar reglas para optimzar el proceso de busqueda sacando los if, para tener indices inteligentes al recorrer el WS
+        Calculos en el cuaderno.
+        iwsMin = iwsMin >= 0 ? iwsMin : 0;
+        jwsMin = jwsMin >= 0 ? jwsMin : 0;
+        iwsMax = iwsMax < frame1.rows ? iwsMax :
+    */
 
     /*  debugin  */
 
@@ -110,8 +109,8 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
 
         std::cout << "--------------------------------------------------\n\n";
     }
-// fin debugin
- */
+    // fin debugin
+    */
 
 
     for (iws = iwsMin; iws < iwsMax; ++iws)
@@ -241,7 +240,8 @@ MapRaysFlux RaysExtractor::Extract(VideoCapture &video, const int SRsize, const 
     return(RaysMap);
 }
 
-RayFlux RaysExtractor::Normalize(const RayFlux rays,const int SizeNorm){
+RayFlux RaysExtractor::Normalize(const RayFlux rays,const int SizeNorm)
+{
     float rate = float(rays.size()) / float(SizeNorm) ;
     RayFlux NormalizeRays;
 
@@ -275,86 +275,71 @@ RayFlux RaysExtractor::Normalize(const RayFlux rays,const int SizeNorm){
     return (NormalizeRays);
 }
 
+class RaysExtractorOLBP: public RaysExtractor
+{
+    public:
+        MapRaysFlux Extract(VideoCapture &,const int, const int, const bool);
+};
 
-/*
-pixel RaysExtractor::Match(const int irs, const int jrs, const int iws, const int jws, const int SRsize, const int WSsize, Mat &f0, Mat &f1){
-    double min = std::numeric_limits<double>::max();
-    pixel PixelOp; //pixel optimo de movimiento
+MapRaysFlux RaysExtractorOLBP::Extract(VideoCapture &video, const int SRsize, const int WSsize, const bool visual = false)
+{
 
-    vector<pixel> minList;
-/
-    cout << irs << "," << jrs << endl;
-    cout << iws << "," << iws << endl;
 
-    std::cout << "Support Region" << std::endl;
-    for(int i = irs; i < irs + SRsize; i++)
+    if(!video.isOpened()){
+        cout << "Video file error" << endl;
+        MapRaysFlux RaysRoi;
+        return(RaysRoi);
+    }
+
+    Mat frame0;
+    Mat frame1;
+    Mat lbpframe0;
+    Mat lbpframe1;
+
+    video.read(frame0);
+    lbpframe0 = Mat::zeros(frame0.rows-2, frame0.cols-2, CV_8UC1);
+    lbpframe1 = Mat::zeros(frame0.rows-2, frame0.cols-2, CV_8UC1);
+
+    //cout << frame0.channels() << endl;
+    //cout << lbp::OLBP(frame0).channels() << endl;
+
+    lbp::OLBP(frame0, lbpframe0);
+
+    map<pixel,pixel> MovimentMap; //Mapa que permite ver a cual pixel se movio en el siguiente tiempo (t+1)
+    //En el caso del primer pixel parte con un movimiento a si mismo
+
+    for(int i = (SRsize-1)/2; i < lbpframe0.rows - (SRsize-1)/2; i++ )
     {
-        for(int j = jrs; j < jrs + SRsize; j++)
+        for(int j = (SRsize-1)/2; j < lbpframe0.cols -(SRsize-1)/2; j++)
         {
-            std::cout << int(f0.at<uchar>(i,j)) << " ";
+            pixel ActualPixel = make_pair(i,j);
+            MovimentMap[ActualPixel] = ActualPixel;
         }
-        std::cout << std::endl;
     }
 
-    std::cout << "--------------------------------------------------\n\n";
+    MapRaysFlux  RaysMap;
+    pixel PixelOp;
 
-    std::cout << "Window Search" << std::endl;
-    for(int i = iws; i < iws + WSsize; i++)
+    while(video.read(frame1))
     {
-        for(int j = jws; j < jws + WSsize; j++)
+        lbp::OLBP(frame1, lbpframe1);
+
+        for (std::map<pixel,pixel>::iterator Map_it = MovimentMap.begin(); Map_it != MovimentMap.end(); ++Map_it)
         {
-            std::cout << int(f1.at<uchar>(i,j)) << " ";
+                pixel ActualPixel = Map_it->second;
+                PixelOp = std::move( RaysExtractorOLBP::Match (ActualPixel , SRsize, WSsize, lbpframe0, lbpframe1 )) ;
+                Map_it->second = PixelOp;
+                RaySupport newRaySupport;
+
+                if(visual)
+                    newRaySupport = std::make_pair( float(PixelOp.first), float(PixelOp.second)  );
+                else
+                     newRaySupport = std::make_pair( float(ActualPixel.first - PixelOp.first), float(ActualPixel.second - PixelOp.second)  );
+
+                RaysMap[Map_it->first].push_back(newRaySupport);
         }
-        std::cout << std::endl;
+        lbpframe1.copyTo(lbpframe0);
     }
 
-/
-
-     for(int i = iws; i < iws + WSsize; i++){
-
-        for(int j = jws; j < jws + WSsize; j++){
-
-            if (i < 0 || j <0 || i >= f1.rows || j >= f1.cols) continue;
-
-            //std::cout << "\n\npixel: (" << i << "," << j << ")\n";
-            //std::cout << "LLamando al MSE\n";
-
-            double tmp = MSE(irs, jrs, i, j, SRsize, f0, f1);
-
-            //std::cout << "El MSE es:" << tmp << std::endl;
-
-            if(tmp < min){
-                min = tmp;
-                minList.clear();
-
-                minList.push_back(std::make_pair(i,j));
-            }
-            else if(tmp == min){
-                minList.push_back(std::make_pair(i,j));
-            }
-        }
-    }
-
-
-    min = std::numeric_limits<double>::max();
-    for (std::vector<pixel>::iterator it = minList.begin(); it != minList.end(); ++it)
-    {
-        double i = ((irs + (SRsize-1)/2) - it->first) * ((irs + (SRsize-1)/2) - it->first);
-        double j = ((jrs + (SRsize-1)/2) - it->second) * ((jrs + (SRsize-1)/2) - it->second);
-
-        double distance = std::sqrt(i+j);
-
-        if(distance < min) {
-            PixelOp = std::make_pair(it->first, it->second);
-            min = distance;
-        }
-
-    }
-
-    //std::cout << "El Pixel escogido es: " << PixelOp.first << " " << PixelOp.second << std::endl;
-
-    //while(waitKey(0) != 13);
-
-    return(PixelOp);
+    return(RaysMap);
 }
-*/

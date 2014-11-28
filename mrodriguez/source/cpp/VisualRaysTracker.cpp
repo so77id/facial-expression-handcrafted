@@ -50,9 +50,9 @@ void Pintar_img(cv::Mat &frame, std::vector<cv::Mat> &vectImg, const int indexIm
      {
         if(i < 0 || i >= frame.rows) continue;
 
-        dstChannels[0].col(ActualFrame).at<uchar>(i,0) = std::get<0>(color);
-        dstChannels[1].col(ActualFrame).at<uchar>(i,0) = std::get<1>(color);
-        dstChannels[2].col(ActualFrame).at<uchar>(i,0) = std::get<2>(color);
+        //dstChannels[0].col(ActualFrame).at<uchar>(i,0) = std::get<0>(color);
+        //dstChannels[1].col(ActualFrame).at<uchar>(i,0) = std::get<1>(color);
+        //dstChannels[2].col(ActualFrame).at<uchar>(i,0) = std::get<2>(color);
      }
 
     cv::merge(dstChannels, vectImg[indexImg]);
@@ -88,7 +88,7 @@ void OnClickCallBack(int event, int x, int y, int flags, void* param)
 
      if  ( event == EVENT_LBUTTONDOWN )
      {
-        cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+        cout << "Left button of the mouse is clicked - position (" << y << ", " << x << ")" << endl;
 
         if(PixelList.size() < MaxSizePixelList)
         {
@@ -101,8 +101,8 @@ void OnClickCallBack(int event, int x, int y, int flags, void* param)
 
 int main(int argc, char const *argv[])
 {
-    if(argc < 9){
-        cout << "Error intente:\n ./programa <Video> <SupportRegionSize> <WindowSearchSize> <MaxSizePixelList> <Paint size> <NameOutFile> <XT Path> <XY Path>"  << endl;
+    if(argc < 10){
+        cout << "Error intente:\n ./programa <Video> <SupportRegionSize> <WindowSearchSize> <MaxSizePixelList> <Paint size> <NameOutFile> <XT Path> <XY Path> <click>"  << endl;
         return (-1);
     }
 
@@ -116,12 +116,13 @@ int main(int argc, char const *argv[])
     string NameOutFIle(argv[6]);
     string XTPath(argv[7]);
     string YTPath(argv[8]);
-
+    int isclick = std::atoi(argv[9]);
 
     Mat dstImage, grayImage, dstImageConst;
 
     namedWindow("Eleccion",1);
-    setMouseCallback("Eleccion", OnClickCallBack, NULL);
+    if(isclick == 0)
+        setMouseCallback("Eleccion", OnClickCallBack, NULL);
 
 
     if(!VideoFile.isOpened() || !VideoFileForExtract.isOpened()){
@@ -151,9 +152,17 @@ int main(int argc, char const *argv[])
 
     imshow("Eleccion", Frame);
 
-
-    while(waitKey(0) != 13);
-
+    if(isclick == 0)
+       while(waitKey(0) != 13);
+   else
+   {
+        for(size_t is = 0; is < MaxSizePixelList; is++)
+        {
+            int x,y;
+            cin >> y >> x;
+            PixelList.push_back(std::make_pair(y,x));
+        }
+   }
     cout << "Comenzando la extraccion de rayos" << endl;
 
 //borrar
