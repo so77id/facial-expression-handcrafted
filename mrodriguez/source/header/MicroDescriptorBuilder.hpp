@@ -79,11 +79,11 @@ bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize,const bool Deb
 
 	if( !WSsize) WSsize = (SupportRegionSize*2)+1;
 
-	while(!inFile_.eof()){
+	while(true){
 
 
 		inFile_ >> VideoPath >> VideoId >>VideoClass >> nVideoFrames;
-
+		if(inFile_.eof()) break;
 
 		VideoCapture Video;
 		Video.open(VideoPath);
@@ -127,8 +127,9 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 
 	outFile_ << SizeNorm;
 
-	while(! inFile_.eof() ){
+	while(true ){
 		inFile_ >> Id >> VideoId >> ROI >> RayFluxSize;
+		if(inFile_.eof()) break;
 
 		if(Debug)
 			cout << "Normalizando el rayo: " << Id << endl;
@@ -156,57 +157,3 @@ bool MicroDescriptorBuilder<T>::NormalizeMicroDescriptors(const string &inFile,c
 
 	return(true);
 }
-
-
-
-
-/* VERSION ANTIGUA DE BUILD
-
-template<typename T>
-bool MicroDescriptorBuilder<T>::Build(const int SupportRegionSize, const int SizeNorm){
-	if(! isGood() ) return (false);
-
-	string VideoPath;
-	string VideoClass;
-	int    VideoId;
-	int    nVideoFrames;
-
-	int descount = 1;
-	outFile_ << 2*SizeNorm << endl;
-
-
-	while(!inFile_.eof()){
-
-		inFile_ >> VideoPath >> VideoId >>VideoClass >> nVideoFrames;
-
-
-		VideoCapture Video;
-		Video.open(VideoPath);
-		cout << "Extrayendo rayos del video " << VideoPath << endl;
-
-		ListRaysFlux Rays = std::move(RaysExtractor_.Extract(Video,SupportRegionSize,SizeNorm));
-
-		int ROI = 1;
-		for (ListRaysFlux::iterator i = Rays.begin(); i != Rays.end(); ++i)
-		{
-			outFile_ << descount++ << " " << VideoId << " " << ROI;
-
-			for (RayFlux::iterator j = i->begin(); j != i->end(); ++j)
-			{
-				outFile_ << " " << j->first << " " << j->second;
-			}
-
-			outFile_ << endl;
-		}
-
-		SizeRaysUniverse_ += Rays.size();
-
-		Video.release();
-	}
-
-	cout << SizeRaysUniverse_ << endl;
-	return (true);
-}
-
-
-*/

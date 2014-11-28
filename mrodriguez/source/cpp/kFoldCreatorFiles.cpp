@@ -79,9 +79,10 @@ int main(int argc, char const *argv[])
 	kFoldConfigFile << CountTest << endl;
 
 
-	while(!inList.eof()){
+	while(true){
 		Video newVideo;
 		inList >> newVideo;
+		if(inList.eof()) break;
 		//cout << newVideo << endl;
 
 		MapVideos[newVideo.VideoClass_].push_back(newVideo);

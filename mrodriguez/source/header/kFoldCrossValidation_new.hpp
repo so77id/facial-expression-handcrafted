@@ -115,9 +115,10 @@ bool kFoldCrossValidation::LoadMacroDescriptors(const string& MacroDescriptrosCo
         return(false);
     }
 
-    while(!MacroConfigFile.eof())
+    while(true)
     {
         MacroConfigFile >> buffer >> kfold_id;
+        if(MacroConfigFile.eof()) break;
 
         //cout << "cargando: " << buffer << endl;
 
@@ -131,11 +132,12 @@ bool kFoldCrossValidation::LoadMacroDescriptors(const string& MacroDescriptrosCo
         NewMapMacro.clear();
 
         MacroFile >> nClusters;
-        while(!MacroFile.eof())
+        while(true)
         {
             NewMacro.clear();
 
             MacroFile >> video_id;
+            if(MacroFile.eof()) break;
             //cout << "\t Cargando el video: " << video_id << endl;
             for (i = 0; i < nClusters; ++i)
             {
@@ -183,9 +185,10 @@ bool kFoldCrossValidation::LoadKfolds(const string& kFoldPath)
         }
 
         //cout << "Train: " << endl;
-        while(!trainFile.eof())
+        while(true)
         {
             getline(trainFile, buffer);
+            if(trainFile.eof()) break;
             //cout << buffer << endl;
             if(buffer.length() < 1) break;
             std::vector<string> Vbuffer = utility::split(buffer," ");
@@ -197,9 +200,11 @@ bool kFoldCrossValidation::LoadKfolds(const string& kFoldPath)
         }//cout << endl;
 
         //cout << "Test: " << endl;
-        while(!testFile.eof())
+        while(true)
         {
             getline(testFile, buffer);
+            if(testFile.eof()) break;
+
             std::vector<string> Vbuffer = utility::split(buffer," ");
 
             video_id = std::stoi(Vbuffer[1]);
@@ -228,9 +233,10 @@ bool kFoldCrossValidation::LoadLabels(const string& LabelsFileName)
         return(false);
     }
 
-    while(! LabelFile.eof())
+    while(true)
     {
         LabelFile >> buffer >> video_id >> video_class >> frames;
+        if(LabelFile.eof()) break;
         VideoLabels[video_id] = video_class;
     }
 
@@ -256,9 +262,10 @@ bool kFoldCrossValidation::LoadMicroDescriptors(const string& MicroDescriptorFil
     RaySize = std::stoi(buffer);
 
     //cout << "RaySize: " << RaySize << endl;
-    while(! MicroDescriptorFile.eof() )
+    while(true)
     {
         getline(MicroDescriptorFile,buffer);
+        if(MicroDescriptorFile.eof() ) break;
         std::vector<string> Vbuffer = utility::split(buffer," ");
 
         video_id  = std::stoi(Vbuffer[1]);
