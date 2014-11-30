@@ -50,9 +50,9 @@ void Pintar_img(cv::Mat &frame, std::vector<cv::Mat> &vectImg, const int indexIm
      {
         if(i < 0 || i >= frame.rows) continue;
 
-        //dstChannels[0].col(ActualFrame).at<uchar>(i,0) = std::get<0>(color);
-        //dstChannels[1].col(ActualFrame).at<uchar>(i,0) = std::get<1>(color);
-        //dstChannels[2].col(ActualFrame).at<uchar>(i,0) = std::get<2>(color);
+        dstChannels[0].col(ActualFrame).at<uchar>(i,0) = std::get<0>(color);
+        dstChannels[1].col(ActualFrame).at<uchar>(i,0) = std::get<1>(color);
+        dstChannels[2].col(ActualFrame).at<uchar>(i,0) = std::get<2>(color);
      }
 
     cv::merge(dstChannels, vectImg[indexImg]);
@@ -238,8 +238,8 @@ int main(int argc, char const *argv[])
     for (size_t i = 0; i < PixelList.size(); ++i)
     {
         pixel ActualPixel  = PixelList[i];
-        string NameXT = XTPath + std::to_string(ActualPixel.first) + "_" + std::to_string(ActualPixel.second) + ".jpg";
-        string NameYT = YTPath + std::to_string(ActualPixel.first) + "_" + std::to_string(ActualPixel.second) + ".jpg";
+        string NameXT = XTPath + std::to_string(ActualPixel.first) + "_" + std::to_string(ActualPixel.second) + ".png";
+        string NameYT = YTPath + std::to_string(ActualPixel.first) + "_" + std::to_string(ActualPixel.second) + ".png";
 
         imwrite( NameXT.c_str(), XT[i] );
         imwrite( NameYT.c_str(), YT[i] );

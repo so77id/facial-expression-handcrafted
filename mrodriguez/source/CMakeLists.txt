@@ -45,3 +45,6 @@ target_link_libraries(PaintFaceWithClusters ${OpenCV_LIBS})
 
 add_executable(VideoTransformLBP "cpp/VideoTransformLBP" "header/utility.cpp")
 target_link_libraries(VideoTransformLBP ${OpenCV_LIBS})
+
+add_executable(RaysErrorCalc "cpp/RaysErrorCalc" "header/utility.cpp")
+target_link_libraries(RaysErrorCalc ${OpenCV_LIBS})
