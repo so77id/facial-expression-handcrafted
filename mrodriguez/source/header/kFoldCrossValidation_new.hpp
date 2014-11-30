@@ -117,8 +117,9 @@ bool kFoldCrossValidation::LoadMacroDescriptors(const string& MacroDescriptrosCo
 
     while(true)
     {
-        MacroConfigFile >> buffer >> kfold_id;
         if(MacroConfigFile.eof()) break;
+        MacroConfigFile >> buffer >> kfold_id;
+
 
         //cout << "cargando: " << buffer << endl;
 
@@ -149,6 +150,11 @@ bool kFoldCrossValidation::LoadMacroDescriptors(const string& MacroDescriptrosCo
         kMMacros[kfold_id] = NewMapMacro;
 
         MacroFile.close();
+    }
+
+    for (kFoldMapMacrodescriptors::iterator i = kMMacros.begin(); i != kMMacros.end(); ++i)
+    {
+        cout << "id: " << i->first << " Size: " << i->second.size() << endl;
     }
 
     return(true);
