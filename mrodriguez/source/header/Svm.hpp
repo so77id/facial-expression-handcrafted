@@ -61,6 +61,9 @@ Svm::~Svm(){}
 
 void Svm::Run(DataSet& DS, MapLabels& Labels, MapMacrodescriptors& MMacrodescriptors, const CvSVMParams &Params, const size_t nClass = 6 )
 {
+    cout << "MacroSize: " << MMacrodescriptors.begin()->second.size() << endl;
+    cout << "DS.first.size() " << DS.first.size() << endl;
+    cout << "Ds.second.size() " << DS.second.size() << endl;
     int MacroSize = MMacrodescriptors.begin()->second.size();
     size_t i,j;
     cv::Mat TrainData(DS.first.size(),MacroSize,CV_32F);
