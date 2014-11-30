@@ -505,7 +505,7 @@ bool kFoldCrossValidation::RunSVM(const CvSVMParams &Params, const size_t nClass
     for (MapDataSetIter MDIter = MDS.begin(); MDIter != MDS.end(); ++MDIter)
     {
         if(debug_) cout << "ejemplo: " << ++z << endl;
-        Svm mySvm;
+        Svm mySvm(true);
         mySvm.Run(MDIter->second, VideoLabels, kMMacros[MDIter->first], Params, nClass);
         Accuracy_ += mySvm.GetAccuracy();
         ConfusionMatrix tmp = std::move(mySvm.GetConfusionMatrix());

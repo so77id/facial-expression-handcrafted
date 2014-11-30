@@ -243,7 +243,7 @@ bool  SVMkFoldCrossValidation(const string& SVMMacroFoldConfig, const string& SV
         kFoldCrossValidation myKFCV(true);
         cout << "LoadnForSVM: " << endl;
         myKFCV.LoadForSVM(MacroFoldName + "macro_kfold_config.txt",SVMkFoldPath, SVMvideoList);
-        cout << "Obteniendo Accuracy: "<< endl
+        cout << "Obteniendo Accuracy: "<< endl;
         Accuracy = myKFCV.kFoldCrossValidation::RunSVM(CMatrixPath + CMFileName,params, 6);
 
         cout << "Accuracy: " << Accuracy << " RSValue: " << RSValue  << " WSValue: " << WSValue  <<  " NValue: "<< NValue <<  " KValue: " << KValue << endl;
