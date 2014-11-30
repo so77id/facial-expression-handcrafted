@@ -34,17 +34,18 @@ int main(int argc, char const *argv[])
 
     Mat Vocabulary;
 
-    ifstream MicroFile(MicroFileName);
 
     kFoldCrossValidation kFCV;
 
-    cout << MicroFileName << endl;
+    cout << "Cargando micro: " << MicroFileName << endl;
     kFCV.LoadMicroDescriptors(MicroFileName);
+    cout << "Cangando kfold" << kFoldPath << endl;
     kFCV.LoadKfolds(kFoldPath);
+    cout << "Moviendo los rayos al map" << endl;
     VideoRayFlux  VideosRays = std::move( kFCV.GetVideosRays());
+    cout << "Moviendo los dataset" << endl;
     MapDataSet MDS = std::move(kFCV.GetMDS());
     DataSet DS = MDS[1];
-
 
     map<size_t,vector<size_t>> RayoCluster;
     map<size_t, pixel> RayoPixel;
@@ -52,6 +53,8 @@ int main(int argc, char const *argv[])
 
     size_t RaysSize = VideosRays.begin()->second.begin()->size()*2;
     size_t TrainSize = 0;
+
+    cout << "abriendo el video" << endl;
 
     VideoCapture VideoFile;
     VideoFile.open(url_video);
@@ -68,6 +71,7 @@ int main(int argc, char const *argv[])
         TrainSize += VideosRays[*SIter].size();
     }
 
+    cout << "TrainSize: " << TrainSize << endl;
 
     size_t i,j,id;
     bool debug_ = true;
@@ -104,12 +108,13 @@ int main(int argc, char const *argv[])
                 }
             }
             TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001);
-            size_t retries = 100;
+            size_t retries = 1;
             size_t flags = KMEANS_PP_CENTERS;
 
             BOWKMeansTrainer bowTrainer(nClusters, tc, retries,flags);
             bowTrainer.add(TrainData);
 
+            cout << "Obteniendo clusters" << endl;
             Vocabulary = bowTrainer.cluster();
             FileStorage fs(VocabularyFileName, FileStorage::WRITE);
             cout << "Guardando el voacabulario" << endl;
@@ -117,6 +122,7 @@ int main(int argc, char const *argv[])
     }
     else
     {
+            cout << "Cargando vocabulario " << endl;
             FileStorage fs(VocabularyFileName, FileStorage::READ);
             fs["vocabulary"] >> Vocabulary;
     }
