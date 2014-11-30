@@ -71,6 +71,11 @@ int main(int argc, char const *argv[])
         TrainSize += VideosRays[*SIter].size();
     }
 
+    for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
+    {
+        TrainSize += VideosRays[*SIter].size();
+    }
+
     cout << "TrainSize: " << TrainSize << endl;
 
     size_t i,j,id;
@@ -107,6 +112,25 @@ int main(int argc, char const *argv[])
                     i++;
                 }
             }
+
+            for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
+            {
+                MMacros[*SIter] = Macrodescriptor(nClusters,0);
+
+                for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)
+                {
+
+                    j = 0;
+                    for(RayFlux::iterator RIter = LIter->begin(); RIter != LIter->end(); ++ RIter)
+                    {
+                                    TrainData.at<float>(i,j) = RIter->first; j++;
+                                    TrainData.at<float>(i,j) = RIter->second; j++;
+                    }
+
+                    i++;
+                }
+            }
+
             TermCriteria tc = TermCriteria(CV_TERMCRIT_ITER,100,0.001);
             size_t retries = 1;
             size_t flags = KMEANS_PP_CENTERS;
