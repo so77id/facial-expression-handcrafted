@@ -236,14 +236,14 @@ bool  SVMkFoldCrossValidation(const string& SVMMacroFoldConfig, const string& SV
     for (int i = 0; i < MacroFilesSize; ++i)
     {
         MacroFoldConfigFile >> MacroFoldName >> RSValue >> WSValue >> NValue >> KValue;
-        cout << "Leyendo Macrodescritproes: " <<MacroFoldName << " " << RSValue << " "  << WSValue << " "  << NValue << " "  << KValue << endl;
+        //cout << "Leyendo Macrodescritproes: " <<MacroFoldName << " " << RSValue << " "  << WSValue << " "  << NValue << " "  << KValue << endl;
 
         CMFileName = "CM_" + std::to_string(RSValue) + "_" + std::to_string(WSValue) + "_" + std::to_string(NValue) + "_" + std::to_string(KValue) + ".csv";
 
-        kFoldCrossValidation myKFCV(true);
-        cout << "LoadnForSVM: " << endl;
+        kFoldCrossValidation myKFCV;
+        //cout << "LoadnForSVM: " << endl;
         myKFCV.LoadForSVM(MacroFoldName + "macro_kfold_config.txt",SVMkFoldPath, SVMvideoList);
-        cout << "Obteniendo Accuracy: "<< endl;
+        //cout << "Obteniendo Accuracy: "<< endl;
         Accuracy = myKFCV.kFoldCrossValidation::RunSVM(CMatrixPath + CMFileName,params, 6);
 
         cout << "Accuracy: " << Accuracy << " RSValue: " << RSValue  << " WSValue: " << WSValue  <<  " NValue: "<< NValue <<  " KValue: " << KValue << endl;

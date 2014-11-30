@@ -152,10 +152,6 @@ bool kFoldCrossValidation::LoadMacroDescriptors(const string& MacroDescriptrosCo
         MacroFile.close();
     }
 
-    for (kFoldMapMacrodescriptors::iterator i = kMMacros.begin(); i != kMMacros.end(); ++i)
-    {
-        cout << "id: " << i->first << " Size: " << i->second.size() << endl;
-    }
 
     return(true);
 }
@@ -511,7 +507,7 @@ bool kFoldCrossValidation::RunSVM(const CvSVMParams &Params, const size_t nClass
     for (MapDataSetIter MDIter = MDS.begin(); MDIter != MDS.end(); ++MDIter)
     {
         if(debug_) cout << "ejemplo: " << ++z << endl;
-        Svm mySvm(true);
+        Svm mySvm;
         mySvm.Run(MDIter->second, VideoLabels, kMMacros[MDIter->first], Params, nClass);
         Accuracy_ += mySvm.GetAccuracy();
         ConfusionMatrix tmp = std::move(mySvm.GetConfusionMatrix());
