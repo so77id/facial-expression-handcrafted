@@ -22,7 +22,9 @@ class RaysExtractor
 {
     protected:
         bool debug;
+        Mat gauss;
         double MSE(const int, const int, const int, const int, const int, Mat&, Mat&);
+        Mat Gauss(const int);
         //pixel Match(const int, const int, const int, const int, const int, const int, Mat&, Mat&);
         pixel Match(const pixel, const int, const int, cv::Mat&, cv::Mat&);
     public:
@@ -35,27 +37,76 @@ RaysExtractor::RaysExtractor(const bool debug = false){
     this->debug = debug;
 }
 
+Mat RaysExtractor::Gauss(const int RSsize)
+{
+    gauss  = Mat::zeros(RSsize, RSsize, CV_32FC1);
+    float sigmaX = 0.0;
+    float sigmaY = 0.0;
+
+    Mat kernelX = getGaussianKernel(RSsize, sigmaX);
+    Mat kernelY = getGaussianKernel(RSsize, sigmaY);
+    gauss = kernelX * kernelY.t();
+
+    return(gauss);
+}
+
 
 double RaysExtractor::MSE(const int irs, const int jrs, const int iws, const int jws, const int RSsize, Mat &f0, Mat &f1){
         double sum = 0.0;
 
         //if(debug)
         //    cout << "\nLa region de soporte de WS\n";
+        /*cout << "Calculando mse: " << endl;
+
+        cout << "RS" << endl;
+        for(int i = 0; i < RSsize; i++)
+        {
+            for(int j = 0; j < RSsize; j++)
+            {
+                cout << int(f0.at<uchar>( (i+irs), (j+jrs) )) << " ";
+            }
+            cout << endl;
+        }
+
+        cout << "WS" << endl;
 
         for(int i = 0; i < RSsize; i++)
         {
             for(int j = 0; j < RSsize; j++)
             {
+                cout << int(f1.at<uchar>( (i+iws) , (j+jws) )) << " ";
+            }
+            cout << endl;
+        }
+
+*/
+        for(int i = 0; i < RSsize; i++)
+        {
+            for(int j = 0; j < RSsize; j++)
+            {
+
+                    //cout << "\tisr: " << (i+irs) << " jrs: " << (j +jrs);
+                    //cout << " | iws: " << (i+iws) << " jws: " << (j+jws )<< endl;
+
                 //if(debug)
-                //    std::cout << int(f1.at<uchar>( (i+iws), (j+jws) )) << " ";
-                sum +=  std::pow( f1.at<uchar>( (i+iws) , (j+jws) ) - f0.at<uchar>( (i+irs), (j+jrs) ) , 2);
+                //    std::cout << int(f1.at<uchar>( (i+iws), (j+jws) )) << ";
+
+                //int a  =  int(f1.at<uchar>( (i+iws) , (j+jws) )) - int(f0.at<uchar>( (i+irs), (j+jrs) ));
+                //int a1 = int(f1.at<uchar>( (i+iws) , (j+jws) ));
+                //int a2 = int(f0.at<uchar>( (i+irs), (j+jrs) ));
+
+                //cout <<  a1;
+                //cout << "  |  " << a2;
+                //cout  << "-->" << a << endl;
+                sum +=  (gauss.at<double>(i,j) * std::pow( int(f1.at<uchar>( (i+iws) , (j+jws) )) - int(f0.at<uchar>( (i+irs), (j+jrs) )) , 2));
+                //sum +=  (std::pow( int(f1.at<uchar>( (i+iws) , (j+jws) )) - int(f0.at<uchar>( (i+irs), (j+jrs) )) , 2));
             }
 
             //if(debug)
             //    std::cout << std::endl;
         }
 
-        return ( std::sqrt(sum) );
+        return ( (sum) );
 }
 
 pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsize, cv::Mat &frame0, cv::Mat &frame1)
@@ -81,8 +132,8 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
     */
 
     /*  debugin  */
-
-    /*if(debug)
+/*
+    if(true)
     {
         std::cout << "Support Region" << std::endl;
         for(int i = isr; i < isr + SRsize; i++)
@@ -109,8 +160,9 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
 
         std::cout << "--------------------------------------------------\n\n";
     }
-    // fin debugin
     */
+    // fin debugin
+
 
 
     for (iws = iwsMin; iws < iwsMax; ++iws)
@@ -118,7 +170,7 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
         for (jws = jwsMin; jws < jwsMax; ++jws)
         {
             if(iws < 0 || jws < 0 || (iws + SRsize) > frame1.rows || (jws + SRsize) > frame1.cols) {
-                //cout << "continuo con: (" << iws << "," << jws << ")\n";
+               // cout << "continuo con: (" << iws << "," << jws << ")\n";
                 continue;
             }
 
@@ -128,10 +180,12 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
             if(debug)
                 std::cout << "LLamando al MSE\n";
         */
+            //cout << "isr: " << isr << " jsr: " << jsr << endl;
             tmp = MSE(isr, jsr, iws, jws, SRsize, frame0, frame1);
 
            // if(debug)
-            //    std::cout << "El MSE es:" << tmp << std::endl;
+           //cout << "buscnado en la esquina X: " << iws << " Y: " <<  jws ;
+           //std::cout << " | El MSE es:" << tmp << std::endl;
 
             if(tmp < min){
                 min = tmp;
@@ -142,29 +196,32 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
             else if(tmp == min){
                 minList.push_back(std::make_pair( iws + ((SRsize-1)/2), jws + ((SRsize-1)/2) ) );
             }
-
         }
     }
 
-
     min = std::numeric_limits<double>::max();
+    //cout << "X: " << (isr + (SRsize-1)/2) << " Y: " << (jsr + (SRsize-1)/2) << endl;
+
+
     for (std::vector<pixel>::iterator it = minList.begin(); it != minList.end(); ++it)
     {
-        double i = ((isr + (SRsize-1)/2) - it->first) * ((isr + (SRsize-1)/2) - it->first);
-        double j = ((jsr + (SRsize-1)/2) - it->second) * ((jsr + (SRsize-1)/2) - it->second);
+        double i = (Actual.first - it->first) * (Actual.first - it->first);
+        double j = (Actual.second - it->second) * (Actual.second - it->second);
 
         double distance = std::sqrt(i+j);
+
+        //cout << it->first << " , " << it->second << " distancia: " << distance << endl;
 
         if(distance < min) {
             PixelOp = std::make_pair(it->first, it->second);
             min = distance;
-        }
+         }
     }
 
 
-   /* if(debug)
-        std::cout << "El Pixel escogido es: " << PixelOp.first << " " << PixelOp.second << std::endl;
-    */
+   //if(true)
+    //    std::cout << "El Pixel escogido es: " << PixelOp.first << " " << PixelOp.second << std::endl << endl << endl;
+
     return(PixelOp);
 }
 
@@ -172,13 +229,13 @@ pixel RaysExtractor::Match(const pixel Actual, const int SRsize, const int WSsiz
 //SRsize  tamaño de la region de soporte
 MapRaysFlux RaysExtractor::Extract(VideoCapture &video, const int SRsize, const int WSsize, const bool visual = false)
 {
-
-
     if(!video.isOpened()){
         cout << "Video file error" << endl;
         MapRaysFlux RaysRoi;
         return(RaysRoi);
     }
+
+    Gauss(SRsize);
 
     Mat frame0;
     Mat frame1;
@@ -211,10 +268,10 @@ MapRaysFlux RaysExtractor::Extract(VideoCapture &video, const int SRsize, const 
                 else
                     debug = false;
                 */
-                /*
-                if(debug)
-                    cout << "Pixel por revisar: (" << ActualPixel.first << "," << ActualPixel.second << ")\n";
-    */
+
+                //if(true)
+                 //   cout << "Pixel por revisar: (" << ActualPixel.first << "," << ActualPixel.second << ")\n";
+
 
 
                 PixelOp = std::move( Match (ActualPixel , SRsize, WSsize, frame0, frame1 )) ;

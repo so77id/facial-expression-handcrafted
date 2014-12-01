@@ -48,3 +48,6 @@ target_link_libraries(VideoTransformLBP ${OpenCV_LIBS})
 
 add_executable(RaysErrorCalc "cpp/RaysErrorCalc" "header/utility.cpp")
 target_link_libraries(RaysErrorCalc ${OpenCV_LIBS})
+
+add_executable(CreateDB "cpp/CreateDB" "header/utility.cpp")
+target_link_libraries(CreateDB ${OpenCV_LIBS})

@@ -139,6 +139,8 @@ int main(int argc, char const *argv[])
     VideoFile.read(Frame);
 
     int ex = static_cast<int>(VideoFile.get(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
+
+
     Size S = Size((int) VideoFile.get(CV_CAP_PROP_FRAME_WIDTH),    // Acquire input size
                   (int) VideoFile.get(CV_CAP_PROP_FRAME_HEIGHT));
     VideoWriter outputVideo;
