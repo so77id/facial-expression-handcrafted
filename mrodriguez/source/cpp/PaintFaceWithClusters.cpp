@@ -68,12 +68,14 @@ int main(int argc, char const *argv[])
     //Calculando tamaño de las Mat par Train y Test
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
-        TrainSize += VideosRays[*SIter].size();
+        if(*SIter == video_id)
+            TrainSize += VideosRays[*SIter].size();
     }
 
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
     {
-        TrainSize += VideosRays[*SIter].size();
+        if(*SIter == video_id)
+            TrainSize += VideosRays[*SIter].size();
     }
 
     cout << "TrainSize: " << TrainSize << endl;
@@ -97,37 +99,46 @@ int main(int argc, char const *argv[])
             i = 0;
             for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
             {
-                MMacros[*SIter] = Macrodescriptor(nClusters,0);
-
-                for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)
+                 if(*SIter == video_id)
                 {
+                        cout << "en el video: " << *SIter << endl;
+                       MMacros[*SIter] = Macrodescriptor(nClusters,0);
 
-                    j = 0;
-                    for(RayFlux::iterator RIter = LIter->begin(); RIter != LIter->end(); ++ RIter)
-                    {
-                                    TrainData.at<float>(i,j) = RIter->first; j++;
-                                    TrainData.at<float>(i,j) = RIter->second; j++;
-                    }
+                        for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)
+                        {
 
-                    i++;
+                            j = 0;
+                            for(RayFlux::iterator RIter = LIter->begin(); RIter != LIter->end(); ++ RIter)
+                            {
+                                            TrainData.at<float>(i,j) = RIter->first; j++;
+                                            TrainData.at<float>(i,j) = RIter->second; j++;
+                            }
+
+                            i++;
+                        }
                 }
             }
 
             for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
             {
-                MMacros[*SIter] = Macrodescriptor(nClusters,0);
 
-                for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)
+                if(*SIter == video_id)
                 {
+                    cout << "en el video: " << *SIter << endl;
+                    MMacros[*SIter] = Macrodescriptor(nClusters,0);
 
-                    j = 0;
-                    for(RayFlux::iterator RIter = LIter->begin(); RIter != LIter->end(); ++ RIter)
+                    for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)
                     {
-                                    TrainData.at<float>(i,j) = RIter->first; j++;
-                                    TrainData.at<float>(i,j) = RIter->second; j++;
-                    }
 
-                    i++;
+                        j = 0;
+                        for(RayFlux::iterator RIter = LIter->begin(); RIter != LIter->end(); ++ RIter)
+                        {
+                                        TrainData.at<float>(i,j) = RIter->first; j++;
+                                        TrainData.at<float>(i,j) = RIter->second; j++;
+                        }
+
+                        i++;
+                    }
                 }
             }
 
