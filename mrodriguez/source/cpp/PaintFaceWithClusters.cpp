@@ -68,13 +68,13 @@ int main(int argc, char const *argv[])
     //Calculando tamaño de las Mat par Train y Test
     for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
     {
-        if(*SIter == video_id)
+        //if(*SIter == video_id)
             TrainSize += VideosRays[*SIter].size();
     }
 
     for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
     {
-        if(*SIter == video_id)
+        //if(*SIter == video_id)
             TrainSize += VideosRays[*SIter].size();
     }
 
@@ -99,9 +99,9 @@ int main(int argc, char const *argv[])
             i = 0;
             for (SetIterator SIter = DS.first.begin(); SIter != DS.first.end(); ++SIter)
             {
-                 if(*SIter == video_id)
+                 //if(*SIter == video_id)
                 {
-                        cout << "en el video: " << *SIter << endl;
+                      //cout << "en el video: " << *SIter << endl;
                        MMacros[*SIter] = Macrodescriptor(nClusters,0);
 
                         for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)
@@ -122,9 +122,9 @@ int main(int argc, char const *argv[])
             for (SetIterator SIter = DS.second.begin(); SIter != DS.second.end(); ++SIter)
             {
 
-                if(*SIter == video_id)
+                //if(*SIter == video_id)
                 {
-                    cout << "en el video: " << *SIter << endl;
+                    //cout << "en el video: " << *SIter << endl;
                     MMacros[*SIter] = Macrodescriptor(nClusters,0);
 
                     for (ListRaysFlux::iterator LIter = VideosRays[*SIter].begin(); LIter != VideosRays[*SIter].end(); ++LIter)

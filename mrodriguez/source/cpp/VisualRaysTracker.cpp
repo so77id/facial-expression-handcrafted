@@ -214,6 +214,8 @@ int main(int argc, char const *argv[])
 
             Pintar(dstImage, r, c, PaintSize, TcolorList[colorCount]);
 
+            //waitKey(0);
+
             colorCount++;
         }
 
