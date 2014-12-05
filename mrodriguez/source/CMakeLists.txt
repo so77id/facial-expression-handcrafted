@@ -51,3 +51,9 @@ target_link_libraries(RaysErrorCalc ${OpenCV_LIBS})
 
 add_executable(CreateDB "cpp/CreateDB" "header/utility.cpp")
 target_link_libraries(CreateDB ${OpenCV_LIBS})
+
+add_executable(videoOutImg "cpp/videoOutImg" "header/utility.cpp")
+target_link_libraries(videoOutImg ${OpenCV_LIBS})
+
+add_executable(EcualizadoImg "cpp/EcualizadoImg" "header/utility.cpp")
+target_link_libraries(EcualizadoImg ${OpenCV_LIBS})
