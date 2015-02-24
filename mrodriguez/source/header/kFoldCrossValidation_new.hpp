@@ -120,9 +120,6 @@ bool kFoldCrossValidation::LoadMacroDescriptors(const string& MacroDescriptrosCo
         if(MacroConfigFile.eof()) break;
         MacroConfigFile >> buffer >> kfold_id;
 
-
-        //cout << "cargando: " << buffer << endl;
-
         MacroFile.open(buffer);
         if(!MacroFile.good())
         {

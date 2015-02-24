@@ -15,9 +15,9 @@ using namespace std;
 
 int main(int argc, char const *argv[])
 {
-    if(argc < 8) {
+    if(argc < 7) {
         cout << "Error en los argumentos" << endl;
-        cout << "./programa <MacrodescriptoresConfigFileName> <video_list> <path kfold> <RBFFile> <LinealFile> <PolyFile> <SigmoidFile>" << endl;
+        cout << "./programa <MacrodescriptoresConfigFileName> <video_list> <path kfold> <RBFFile> <LinealFile> <PolyFile>" << endl;
         return (-1);
     }
 
@@ -27,19 +27,21 @@ int main(int argc, char const *argv[])
     string RBFfile(argv[4]);
     string LinealFile(argv[5]);
     string PolyFile(argv[6]);
-    string SIgmoidFile(argv[7]);
 
 
-    int GammaMin = -30;
+    int GammaMin = -5;
     int GammaMax = 5;
-    int CMin = -10;
-    int CMax = 15;
+    int CMin = -5;
+    int CMax = 5;
     int DegreeMin = 1;
-    int DegreeMax = 10;
+    int DegreeMax = 8;
 
     kFoldCrossValidation myKFCV;
-    myKFCV.LoadForSVM(MacroConfig,kfoldPath, video_list);
-
+    if(myKFCV.LoadForSVM(MacroConfig,kfoldPath, video_list) == false)
+    {
+        cout << "Error al cargar" << endl;
+        return(-1);
+    }
     //SVM params
    /* CvSVMParams Params;
     Params.svm_type    = CvSVM::C_SVC;
@@ -103,7 +105,7 @@ int main(int argc, char const *argv[])
     //Gamma 2^-20 -> 2^4
     //coef 0
     //C 2^-5 -> 2^15
-
+/*
     CvSVMParams SigmoidParams;
     SigmoidParams.svm_type  = CvSVM::C_SVC;
     SigmoidParams.kernel_type = CvSVM::SIGMOID;
@@ -129,8 +131,7 @@ int main(int argc, char const *argv[])
     }
 
     SIGMOIDout.close();
-
-
+*/
 
 //Poly
     //degree 1 -> 10

@@ -57,3 +57,6 @@ target_link_libraries(videoOutImg ${OpenCV_LIBS})
 
 add_executable(EcualizadoImg "cpp/EcualizadoImg" "header/utility.cpp")
 target_link_libraries(EcualizadoImg ${OpenCV_LIBS})
+
+add_executable(firstFrame "cpp/firstFrame" "header/utility.cpp")
+target_link_libraries(firstFrame ${OpenCV_LIBS})
